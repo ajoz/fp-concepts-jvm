@@ -4,7 +4,7 @@ import io.github.ajoz.util.Semigroup;
 
 import java.util.Objects;
 
-public class ErrorMessage implements Semigroup<ErrorMessage> {
+class ErrorMessage implements Semigroup<ErrorMessage> {
     private final String message;
 
     // Needs a nonempty string!!
