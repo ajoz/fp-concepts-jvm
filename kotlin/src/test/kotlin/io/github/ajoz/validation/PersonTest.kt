@@ -1,10 +1,25 @@
 package io.github.ajoz.validation
 
+import io.github.ajoz.curry
 import io.github.ajoz.validation.Validation.Failure
 import io.github.ajoz.validation.Validation.Success
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+
+typealias Name = String
+typealias ValidName = Success<ErrorMessage, Name>
+typealias InvalidName = Failure<ErrorMessage, Name>
+
+typealias Mail = String
+typealias ValidMail = Success<ErrorMessage, Mail>
+typealias InvalidMail = Failure<ErrorMessage, Mail>
+
+typealias Age = Int
+typealias ValidAge = Success<ErrorMessage, Age>
+typealias InvalidAge = Failure<ErrorMessage, Age>
+
+data class Person(val name: String, val email: String, val age: Int)
 
 class PersonTest {
 
@@ -47,49 +62,32 @@ class PersonTest {
         assertEquals(person, actual.value)
     }
 
+    @Suppress("MemberVisibilityCanPrivate")
     companion object {
-        private val WRONG_NAME_ERROR = ErrorMessage("Name length not between 1 and 50 characters")
-        private val WRONG_EMAIL_ERROR = ErrorMessage("Email does not have @ sign")
-        private val WRONG_AGE_ERROR = ErrorMessage("Age not between 0 and 120")
+        val WRONG_NAME_ERROR = ErrorMessage("Name length not between 1 and 50 characters")
+        val WRONG_EMAIL_ERROR = ErrorMessage("Email does not have @ sign")
+        val WRONG_AGE_ERROR = ErrorMessage("Age not between 0 and 120")
+        val WRONG_ALL_ERROR = WRONG_NAME_ERROR append WRONG_EMAIL_ERROR append WRONG_AGE_ERROR
 
-        private val WRONG_ALL_ERROR = WRONG_NAME_ERROR.append(WRONG_EMAIL_ERROR).append(WRONG_AGE_ERROR)
+        fun validateName(name: Name) =
+                if (name.length in 1..50)
+                    ValidName(name)
+                else
+                    InvalidName(WRONG_NAME_ERROR)
 
-        private val consPerson: (String) -> (String) -> (Int) -> Person =
-                { name -> { email -> { age -> Person(name, email, age) } } }
+        fun validateEmail(email: Email) =
+                if (email.contains("@"))
+                    ValidMail(email)
+                else
+                    InvalidMail(WRONG_EMAIL_ERROR)
 
-        private val mkName: (String) -> Validation<ErrorMessage, String> = { name ->
-            if (name.length in 1..50) {
-                Success(name)
-            } else {
-                Failure(WRONG_NAME_ERROR)
-            }
-        }
+        fun validateAge(age: Age) =
+                if (age in 0..120)
+                    ValidAge(age)
+                else
+                    InvalidAge(WRONG_AGE_ERROR)
 
-        private val mkEmail: (String) -> Validation<ErrorMessage, String> = { email ->
-            if (email.contains("@")) {
-                Success(email)
-            } else {
-                Failure(WRONG_EMAIL_ERROR)
-            }
-        }
-
-        private val mkAge: (Int) -> Validation<ErrorMessage, Int> = { age ->
-            if (age in 0..120) {
-                Success(age)
-            } else {
-                Failure(WRONG_AGE_ERROR)
-            }
-        }
-
-        private val mkPerson: (String) -> (String) -> (Int) -> Validation<ErrorMessage, Person> = { pName ->
-            { pEmail ->
-                { pAge ->
-                    mkName(pName) map consPerson ap mkEmail(pEmail) ap mkAge(pAge)
-                }
-            }
-        }
-
-        private fun validatePerson(name: String, email: String, age: Int) =
-                mkPerson(name)(email)(age)
+        fun validatePerson(name: Name, email: Email, age: Age) =
+                validateName(name) map curry(::Person) ap validateEmail(email) ap validateAge(age)
     }
 }

@@ -1,5 +1,7 @@
 package io.github.ajoz.validation
 
+import io.github.ajoz.Functor
+import io.github.ajoz.Semigroup
 import java.util.*
 
 class NonEmptyList<A> : Semigroup<NonEmptyList<A>>, Functor<A> {
@@ -31,7 +33,7 @@ class NonEmptyList<A> : Semigroup<NonEmptyList<A>>, Functor<A> {
             NonEmptyList(list.map(func))
 
     override fun toString(): String {
-        return "io.github.ajoz.validation.NonEmptyList{$list}"
+        return "NonEmptyList{$list}"
     }
 
     override fun equals(o: Any?): Boolean {

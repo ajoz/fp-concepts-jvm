@@ -1,5 +1,7 @@
 package io.github.ajoz.validation
 
+import io.github.ajoz.Functor
+import io.github.ajoz.Semigroup
 import io.github.ajoz.constant
 import io.github.ajoz.identity
 import io.github.ajoz.validation.Validation.Failure
@@ -15,7 +17,7 @@ sealed class Validation<E : Semigroup<E>, A> : Functor<A> {
     abstract fun isSuccess(): Boolean
     fun isFailure() = !isSuccess()
 
-    override abstract infix fun <B> map(func: (A) -> B): Validation<E, B>
+    override abstract fun <B> map(func: (A) -> B): Validation<E, B>
 
     infix fun <B> apLeft(other: Validation<E, B>) =
             map(constant<A, B>()) ap other
@@ -32,11 +34,10 @@ sealed class Validation<E : Semigroup<E>, A> : Functor<A> {
         override fun isSuccess() = false
         override fun <B> map(func: (A) -> B) = Failure<E, B>(error)
     }
-    }
-
-fun <A, B, E : Semigroup<E>> mapConst(a: A): (Validation<E, B>) -> Validation<E, A> = { v ->
-    v.map(constant(a))
 }
+
+fun <A, B, E : Semigroup<E>> mapConst(a: A): (Validation<E, B>) -> Validation<E, A> =
+        { validation -> validation map constant(a) }
 
 // smart casts and when expression for the win!
 infix fun <E : Semigroup<E>, A, B> Validation<E, (A) -> B>.ap(other: Validation<E, A>): Validation<E, B> =
