@@ -5,6 +5,7 @@ import io.github.ajoz.util.Semigroup;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 class NonEmptyList<A> implements Semigroup<NonEmptyList<A>>, Functor<A> {
@@ -47,5 +48,18 @@ class NonEmptyList<A> implements Semigroup<NonEmptyList<A>>, Functor<A> {
 
     public static <A> NonEmptyList<A> nel(final A item) {
         return new NonEmptyList<>(item);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final NonEmptyList<?> that = (NonEmptyList<?>) o;
+        return Objects.equals(list, that.list);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(list);
     }
 }
