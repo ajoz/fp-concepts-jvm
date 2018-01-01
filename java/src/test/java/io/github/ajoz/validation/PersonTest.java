@@ -7,28 +7,14 @@ import org.junit.Test;
 import java.util.function.Function;
 
 public class PersonTest {
-    static class Person {
-        final String name;
-        final String email;
-        final Integer age;
-
-        Person(final String name,
-               final String email,
-               final Integer age) {
-            this.name = name;
-            this.email = email;
-            this.age = age;
-        }
-
-        public final static Function<String, Function<String, Function<Integer, Person>>> consPerson =
-                name -> email -> age -> new Person(name, email, age);
-    }
-
     private final static ErrorMessage WRONG_NAME_ERROR = new ErrorMessage("Name length not between 1 and 50 characters");
     private final static ErrorMessage WRONG_EMAIL_ERROR = new ErrorMessage("Email does not have @ sign");
     private final static ErrorMessage WRONG_AGE_ERROR = new ErrorMessage("Age not between 0 and 120");
 
     private final static ErrorMessage WRONG_ALL_ERROR = WRONG_NAME_ERROR.append(WRONG_EMAIL_ERROR).append(WRONG_AGE_ERROR);
+
+    public final static Function<String, Function<String, Function<Integer, Person>>> consPerson =
+            name -> email -> age -> new Person(name, email, age);
 
     private final static Function<String, Validation<ErrorMessage, String>> mkName =
             name -> {
@@ -60,7 +46,7 @@ public class PersonTest {
 
     private final static Function<String, Function<String, Function<Integer, Validation<ErrorMessage, Person>>>> mkPerson =
             pName -> pEmail -> pAge -> {
-                final Validation<ErrorMessage, Function<String, Function<Integer, Person>>> vName = mkName.apply(pName).map(Person.consPerson);
+                final Validation<ErrorMessage, Function<String, Function<Integer, Person>>> vName = mkName.apply(pName).map(consPerson);
                 final Validation<ErrorMessage, Function<Integer, Person>> vEmail = Validation.ap(vName, mkEmail.apply(pEmail));
                 final Validation<ErrorMessage, Person> vPerson = Validation.ap(vEmail, mkAge.apply(pAge));
                 return vPerson;
@@ -100,5 +86,14 @@ public class PersonTest {
         final Validation<ErrorMessage, Person> actual = validatePerson("", "all wrong!", 121);
         assertTrue(actual.isFailure());
         assertEquals(WRONG_ALL_ERROR, actual.getError());
+    }
+
+    @Test
+    public void shouldBeSuccessful() {
+        final Person person = new Person("Foo", "foo@bar.com", 64);
+
+        final Validation<ErrorMessage, Person> actual = validatePerson(person.name, person.email, person.age);
+        assertTrue(actual.isSuccess());
+        assertEquals(person, actual.getValue());
     }
 }
