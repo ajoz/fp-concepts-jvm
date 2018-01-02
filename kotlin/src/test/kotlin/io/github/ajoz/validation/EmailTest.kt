@@ -1,5 +1,6 @@
 package io.github.ajoz.validation
 
+import io.github.ajoz.NonEmptyList
 import io.github.ajoz.validation.EmailError.*
 import io.github.ajoz.validation.Validation.Failure
 import io.github.ajoz.validation.Validation.Success
@@ -7,6 +8,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+// We can define a set of possible Email processing errors, this allows us to
+// have a better control over the passed values in contrast to the example
+// that was using "string semigroup"
 enum class EmailError {
     MustNotBeEmpty,
     MustContainAt,
@@ -114,6 +118,12 @@ class EmailTest {
                     InvalidEmail(MUST_NOT_BE_EMPTY)
 
         // using apLeft <*
+        // validateEmailApLeft :: String -> Validation [String] Email
+        // validateEmailApLeft x = pure (Email x) <*
+        //                         (validateNonEmpty x) <*
+        //                         (validateAt x) <*
+        //                         (validatePeriod x)
+
         fun validateEmailApLeft(email: Email) =
                 ValidEmail(email)
                         .apLeft(validateNonEmpty(email))
@@ -121,6 +131,11 @@ class EmailTest {
                         .apLeft(validatePeriod(email))
 
         // using apRight *>
+        // validateEmailApRight :: String -> Validation [String] Email
+        // validateEmailApRight x = (validateNonEmpty x) *>
+        //                          (validateAt x) *>
+        //                          (validatePeriod x) *>
+        //                          pure (Email x)
         fun validateEmailApRight(email: Email) =
                 validateNonEmpty(email)
                         .apRight(validateAt(email))

@@ -1,5 +1,6 @@
 package io.github.ajoz.validation
 
+import io.github.ajoz.Semigroup
 import io.github.ajoz.curry
 import io.github.ajoz.validation.Validation.Failure
 import io.github.ajoz.validation.Validation.Success
@@ -20,6 +21,12 @@ typealias ValidAge = Success<ErrorMessage, Age>
 typealias InvalidAge = Failure<ErrorMessage, Age>
 
 data class Person(val name: String, val email: String, val age: Int)
+
+data class ErrorMessage(val message: String) : Semigroup<ErrorMessage> {
+    override fun append(other: ErrorMessage): ErrorMessage {
+        return ErrorMessage(this.message + "\n" + other.message)
+    }
+}
 
 class PersonTest {
 
@@ -87,6 +94,8 @@ class PersonTest {
                 else
                     InvalidAge(WRONG_AGE_ERROR)
 
+        // validatePerson:: Name -> Email -> Age -> Validation [String] Person
+        // validatePerson name email age = Person <$> (validateName name) <*> (validateEmail email) <*> (validateAge age)
         fun validatePerson(name: Name, email: Email, age: Age) =
                 validateName(name) map curry(::Person) ap validateEmail(email) ap validateAge(age)
     }

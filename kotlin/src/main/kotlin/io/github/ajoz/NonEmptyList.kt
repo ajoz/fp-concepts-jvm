@@ -1,7 +1,5 @@
-package io.github.ajoz.validation
+package io.github.ajoz
 
-import io.github.ajoz.Functor
-import io.github.ajoz.Semigroup
 import java.util.*
 
 class NonEmptyList<A> : Semigroup<NonEmptyList<A>>, Functor<A> {
