@@ -1,10 +1,11 @@
 package io.github.ajoz.validation;
 
+import static io.github.ajoz.validation.Validation.ap;
+import static io.github.ajoz.validation.Validation.failure;
+import static io.github.ajoz.validation.Validation.success;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
-
-import java.util.function.Function;
 
 public class PersonTest {
     private final static ErrorMessage WRONG_NAME_ERROR = new ErrorMessage("Name length not between 1 and 50 characters");
@@ -13,49 +14,35 @@ public class PersonTest {
 
     private final static ErrorMessage WRONG_ALL_ERROR = WRONG_NAME_ERROR.append(WRONG_EMAIL_ERROR).append(WRONG_AGE_ERROR);
 
-    public final static Function<String, Function<String, Function<Integer, Person>>> consPerson =
-            name -> email -> age -> new Person(name, email, age);
+    private static Validation<ErrorMessage, String> validateName(final String name) {
+        final int length = name.length();
+        if (length >= 1 && length <= 50) {
+            return success(name);
+        } else {
+            return failure(WRONG_NAME_ERROR);
+        }
+    }
 
-    private final static Function<String, Validation<ErrorMessage, String>> mkName =
-            name -> {
-                final int length = name.length();
-                if (length >= 1 && length <= 50) {
-                    return Validation.success(name);
-                } else {
-                    return Validation.failure(WRONG_NAME_ERROR);
-                }
-            };
+    private static Validation<ErrorMessage, String> validateEmail(final String email) {
+        if (email.contains("@")) {
+            return success(email);
+        } else {
+            return failure(WRONG_EMAIL_ERROR);
+        }
+    }
 
-    private final static Function<String, Validation<ErrorMessage, String>> mkEmail =
-            email -> {
-                if (email.contains("@")) {
-                    return Validation.success(email);
-                } else {
-                    return Validation.failure(WRONG_EMAIL_ERROR);
-                }
-            };
-
-    private final static Function<Integer, Validation<ErrorMessage, Integer>> mkAge =
-            age -> {
-                if (age >= 0 && age <= 120) {
-                    return Validation.success(age);
-                } else {
-                    return Validation.failure(WRONG_AGE_ERROR);
-                }
-            };
-
-    private final static Function<String, Function<String, Function<Integer, Validation<ErrorMessage, Person>>>> mkPerson =
-            pName -> pEmail -> pAge -> {
-                final Validation<ErrorMessage, Function<String, Function<Integer, Person>>> vName = mkName.apply(pName).map(consPerson);
-                final Validation<ErrorMessage, Function<Integer, Person>> vEmail = Validation.ap(vName, mkEmail.apply(pEmail));
-                final Validation<ErrorMessage, Person> vPerson = Validation.ap(vEmail, mkAge.apply(pAge));
-                return vPerson;
-            };
+    private static Validation<ErrorMessage, Integer> validateAge(final Integer age) {
+        if (age >= 0 && age <= 120) {
+            return success(age);
+        } else {
+            return failure(WRONG_AGE_ERROR);
+        }
+    }
 
     private static Validation<ErrorMessage, Person> validatePerson(final String name,
                                                                    final String email,
                                                                    final Integer age) {
-        return mkPerson.apply(name).apply(email).apply(age);
+        return ap(ap(validateName(name).map(Person.cons), validateEmail(email)), validateAge(age));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package io.github.ajoz.validation;
 
+import static io.github.ajoz.util.Functions.constant;
 import io.github.ajoz.util.Functor;
 import io.github.ajoz.util.Semigroup;
 
@@ -19,16 +20,14 @@ public abstract class Validation<E extends Semigroup<E>, A> implements Functor<A
             return new Success<>(function.apply(value));
         }
 
+        @Override
         public boolean isSuccess() {
             return true;
         }
 
+        @Override
         public A getValue() {
             return value;
-        }
-
-        public E getError() {
-            throw new RuntimeException("No ErrorString in success validation!");
         }
 
         @Override
@@ -44,18 +43,17 @@ public abstract class Validation<E extends Semigroup<E>, A> implements Functor<A
             this.error = error;
         }
 
+        @Override
         public <B> Validation<E, B> map(final Function<A, B> function) {
             return new Failure<>(error);
         }
 
+        @Override
         public boolean isSuccess() {
             return false;
         }
 
-        public A getValue() {
-            throw new RuntimeException("No ErrorString in success validation!");
-        }
-
+        @Override
         public E getError() {
             return error;
         }
@@ -72,15 +70,21 @@ public abstract class Validation<E extends Semigroup<E>, A> implements Functor<A
         return !isSuccess();
     }
 
-    public abstract A getValue();
+    public A getValue() {
+        throw new RuntimeException("No value element available!");
+    }
 
-    public abstract E getError();
+    public E getError() {
+        throw new RuntimeException("No error element available!");
+    }
 
+    // to workaround Java type system and make the Functor.map method return a Validation
+    // we need to override it with a return type that is derived from Functor
+    @Override
     public abstract <B> Validation<E, B> map(Function<A, B> function);
 
     public <B> Validation<E, A> apLeft(final Validation<E, B> other) {
-        final Validation<E, Function<B, A>> mapped = this.map(Validation.<A, B>constant());
-        return ap(mapped, other);
+        return ap(map(constant()), other);
     }
 
     public <B> Validation<E, B> apRight(final Validation<E, B> other) {
@@ -89,24 +93,20 @@ public abstract class Validation<E extends Semigroup<E>, A> implements Functor<A
         return ap(fmapped, other);
     }
 
-    private static <A, B, E extends Semigroup<E>> Function<Validation<E, B>, Validation<E, A>> mapConst(final A a) {
-        return v -> {
-            final Function<A, Function<B, A>> constant = constant();
-            final Function<B, A> constA = constant.apply(a);
-            return v.map(constA);
-        };
-    }
-
-    private static <A, B> Function<A, Function<B, A>> constant() {
-        return a -> (Function<B, A>) ignored -> a;
-    }
-
     public static <E extends Semigroup<E>, A> Validation<E, A> success(final A value) {
         return new Success<>(value);
     }
 
     public static <E extends Semigroup<E>, A> Validation<E, A> failure(final E error) {
         return new Failure<>(error);
+    }
+
+    public static <A, B, E extends Semigroup<E>> Function<Validation<E, B>, Validation<E, A>> mapConst(final A a) {
+        return validation -> {
+            final Function<A, Function<B, A>> constant = constant();
+            final Function<B, A> constA = constant.apply(a);
+            return validation.map(constA);
+        };
     }
 
     @SuppressWarnings("ConstantConditions")

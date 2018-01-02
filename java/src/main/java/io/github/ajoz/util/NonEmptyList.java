@@ -1,14 +1,11 @@
-package io.github.ajoz.validation;
-
-import io.github.ajoz.util.Functor;
-import io.github.ajoz.util.Semigroup;
+package io.github.ajoz.util;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-class NonEmptyList<A> implements Semigroup<NonEmptyList<A>>, Functor<A> {
+public class NonEmptyList<A> implements Semigroup<NonEmptyList<A>>, Functor<A> {
     private final List<A> list = new LinkedList<>();
 
     public NonEmptyList(final A item) {

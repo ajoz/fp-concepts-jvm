@@ -1,13 +1,14 @@
 package io.github.ajoz.validation;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 public class Person {
     final String name;
     final String email;
     final Integer age;
 
-    Person(final String name,
+    public Person(final String name,
            final String email,
            final Integer age) {
         this.name = name;
@@ -29,4 +30,7 @@ public class Person {
     public int hashCode() {
         return Objects.hash(name, email, age);
     }
+
+    public final static Function<String, Function<String, Function<Integer, Person>>> cons =
+            name -> email -> age -> new Person(name, email, age);
 }
