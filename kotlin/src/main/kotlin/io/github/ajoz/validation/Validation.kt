@@ -9,10 +9,10 @@ import io.github.ajoz.validation.Validation.Success
 
 sealed class Validation<E : Semigroup<E>, A> : Functor<A> {
     open val value: A
-        get() = throw NoSuchElementException("")
+        get() = throw NoSuchElementException("No value element available!")
 
     open val error: E
-        get() = throw NoSuchElementException("")
+        get() = throw NoSuchElementException("No error element available!")
 
     abstract fun isSuccess(): Boolean
     fun isFailure() = !isSuccess()
