@@ -51,9 +51,9 @@ public class NoIfs5FunctionalExample {
 
     public interface MatchPredicate extends BiFunction<String, String, Boolean> {}
 
-    public static MatchPredicate contains = (where, what) -> where.contains(what);
+    public static MatchPredicate contains = String::contains;
 
-    public static MatchPredicate equals = (where, what) -> where.contentEquals(what);
+    public static MatchPredicate equals = String::contentEquals;
 
     public static Function<Match, Match> caseInsensitive =
             match -> (where, predicate, what) -> match.apply(where.toLowerCase(), predicate, what.toLowerCase());

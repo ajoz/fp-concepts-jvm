@@ -4,13 +4,13 @@ package io.github.ajoz.noifs;
  * In this exercise we will see how imperative code with conditional statements can be changed to a functional one. It's
  * possible to give up on using boolean flags for methods and use functions instead. Each `if` in the code creates a branch
  * that makes reading the resulting algorithm harder.
- *
+ * <p>
  * The simplest approach would be to just create a method that covers each boolean flag. Is it really the simpliest? It
  * would certainly bloat our API.
- *
+ * <p>
  * In the example below we will discuss a `match` method. That method is supposed to check if a given string matches
  * (equals or contains) another string.
- *
+ * <p>
  * Let's analyze this simple match method. It contains 4 arguments:
  * 1) where - a String which will be used for matching, we treat it as a base in case of globalMatch set to true. By base
  * we mean that we check if it contains the second String `what`
@@ -19,7 +19,7 @@ package io.github.ajoz.noifs;
  * those strings contains the other. By "global" we mean whole strings.
  * 4) what - a String which will be matched, in case of globalMatch it will be just `where equals what` otherwise it will
  * be `where contains what`
- *
+ * <p>
  * Simple as that! What can be improved here?
  */
 public class NoIfs1ImperativeExample {
@@ -36,7 +36,10 @@ public class NoIfs1ImperativeExample {
      *                    if can be only contained in the base text.
      * @return true if strings match given the matching criteria, false otherwise.
      */
-    public static boolean match(final String where, final boolean ignoreCase, final boolean globalMatch, final String what) {
+    public static boolean match(final String where,
+                                final boolean ignoreCase,
+                                final boolean globalMatch,
+                                final String what) {
         final String pattern;
         final String target;
         if (ignoreCase) {

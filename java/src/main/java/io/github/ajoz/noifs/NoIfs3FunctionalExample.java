@@ -45,7 +45,10 @@ public class NoIfs3FunctionalExample {
 
     public static Function<String, String> caseInsensitive = String::toLowerCase;
 
-    public static boolean match(final String where, final Function<String, String> cse, final MatchPredicate predicate, final String what) {
+    public static boolean match(final String where,
+                                final Function<String, String> cse,
+                                final MatchPredicate predicate,
+                                final String what) {
         final String pattern = cse.apply(what);
         final String target = cse.apply(where);
 

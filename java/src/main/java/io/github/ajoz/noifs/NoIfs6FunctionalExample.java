@@ -62,12 +62,12 @@ public class NoIfs6FunctionalExample {
 
     public interface Match extends BiFunction<String, String, Boolean> {}
 
-    public static Match matchContains = (where, what) -> where.contains(what);
+    public static Match matchContains = String::contains;
 
-    public static Match matchEquals = (where, what) -> where.contentEquals(what);
+    public static Match matchEquals = String::contentEquals;
 
     public static Function<Match, Match> caseInsensitive =
-            match -> (Match) (where, what) -> match.apply(where.toLowerCase(), what.toLowerCase());
+            match -> (where, what) -> match.apply(where.toLowerCase(), what.toLowerCase());
 
 
     public static void main(String[] args) {

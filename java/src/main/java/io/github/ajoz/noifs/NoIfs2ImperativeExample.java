@@ -36,7 +36,10 @@ public class NoIfs2ImperativeExample {
         EQUALS
     }
 
-    public static boolean match(final String where, final MatchCase cse, final MatchPredicate predicate, final String what) {
+    public static boolean match(final String where,
+                                final MatchCase cse,
+                                final MatchPredicate predicate,
+                                final String what) {
         final String target;
         final String pattern;
         switch (cse) {
