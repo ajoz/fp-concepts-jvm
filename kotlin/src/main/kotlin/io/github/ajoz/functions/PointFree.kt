@@ -34,11 +34,72 @@ fun first(string: String, count: Int): String =
 // I cannot invoke it with only one argument
 // val firstInWord: (Int) -> String = first("Word")
 
+// I cannot invoke it in a classic way: take("some string", 2)
 
 // - it was designed to allow easy creation of DSL's and primarily is Object
 // Oriented
+
+// Just browsing through the available API it's easy to notice
+// that most of the functions are defined as extensions to some existing types
+// and even if those extension functions need a function it's always placed
+// as a last one. This is supposed to make them look like language elements
+// Example
+
+/*
+public inline fun <R> synchronized(lock: Any, block: () -> R): R {
+    @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE", "INVISIBLE_MEMBER")
+    monitorEnter(lock)
+    try {
+        return block()
+    }
+    finally {
+        @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE", "INVISIBLE_MEMBER")
+        monitorExit(lock)
+    }
+}
+ */
+
+// This can be used like:
+
+val myLock = Any()
+val someValue = synchronized(myLock){
+    // some really important code that needs to be synchronized
+}
+
+// now synchronized function in Kotlin looks like a synchronized block in Java
+// I think that the whole design was rotating around that idea
+
 // - due to mentioned DSL design decision any higher order function that takes
 // function as the first argument looks hideous with a lambda
+
+fun needsAFunctionFirst(f: (String) -> Int, s: String): Int = f(s)
+
+val naff = needsAFunctionFirst({s -> s.length}, "This is ugly")
+
+// Ugly, even without a type declaration for the lambda argument it still looks
+// messy due to the pair of bracers {} surrounding it
+
+// So why is this even a problem?
+
+// Let's have a function that takes a list and another function, and maps all
+// values on the list with said function:
+
+fun <T, R> map1(list: List<T>, function: (T) -> R): List<R> = list.map(function)
+
+// Let's also use first function that takes a string and returns its n first elements
+
+val listOfStrings1 = listOf("This", "is a", "list")
+val listOfStringsShort = map1(listOfStrings1) {
+    first(it, 2)
+}
+
+// even if we use it, it's still messy and is glued to the data it's processing
+// I cannot construct a composition of map1 and first as a new function called
+// firstTwoWords
+
+
+
+
 // - due to the same DSL design decision curried function definition looks awful
 
 // This causes issues with expressing simple things in concise way very hard in
