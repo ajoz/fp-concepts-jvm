@@ -62,7 +62,7 @@ public inline fun <R> synchronized(lock: Any, block: () -> R): R {
 // This can be used like:
 
 val myLock = Any()
-val someValue = synchronized(myLock){
+val someValue = synchronized(myLock) {
     // some really important code that needs to be synchronized
 }
 
@@ -74,7 +74,7 @@ val someValue = synchronized(myLock){
 
 fun needsAFunctionFirst(f: (String) -> Int, s: String): Int = f(s)
 
-val naff = needsAFunctionFirst({s -> s.length}, "This is ugly")
+val naff = needsAFunctionFirst({ s -> s.length }, "This is ugly")
 
 // Ugly, even without a type declaration for the lambda argument it still looks
 // messy due to the pair of bracers {} surrounding it
@@ -97,15 +97,36 @@ val listOfStringsShort = map1(listOfStrings1) {
 // I cannot construct a composition of map1 and first as a new function called
 // firstTwoWords
 
-
-
+// To be perfectly honest the order doesn't matter as the functions are not
+// curried by default
 
 // - due to the same DSL design decision curried function definition looks awful
 
-// This causes issues with expressing simple things in concise way very hard in
-// Kotlin or at least you need to bare the bracers orgy ;-)
+// Let's redefine our map and first functions:
+// - swap the order of arguments (functions first)
+// - change them to a curried form so instead of (A, B, C) -> D it should be
+// (A) -> (B) -> (C) -> D
+
+fun <T, R> map2(function: (T) -> R): (List<T>) -> List<R> = { list ->
+    list.map(function)
+}
+
+fun first2(count: Int): (String) -> String = { string ->
+    string.take(count)
+}
+
+// getting back to previous example:
+
+val listOfStringsShort2: List<String> = map2(first2(2))(listOfStrings1)
+
+// this doesn't look better at all
+// what if we don't pass the value at all
 
 
+val firstTwo: (String) -> String = first2(2)
+val firstTwoLetters: (List<String>) -> List<String>  = map2(firstTwo)
+
+// now we can pass firsTwoLetters function anywhere
 
 
 //cheating a bit and implementing foldLeft with List.fold
@@ -115,12 +136,17 @@ fun <T, R> foldLeft(f: (R, T) -> R): (R) -> (List<T>) -> R =
         }
 
 
+
 // a map can be expressed in terms of fold
 fun <T, R> map(f: (T) -> R): (List<T>) -> List<R> = {
     foldLeft<T, List<R>> { r, t ->
         r + listOf(f(t))
     }(emptyList())(it)
 }
+
+// This causes issues with expressing simple things in concise way very hard in
+// Kotlin or at least you need to bare the bracers orgy ;-)
+
 
 fun main(args: Array<String>) {
     val l = listOf(1, 2, 3)
@@ -131,3 +157,4 @@ fun main(args: Array<String>) {
 
     println(mapPlus10(l))
 }
+
