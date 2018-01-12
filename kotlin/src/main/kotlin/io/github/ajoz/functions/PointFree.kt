@@ -28,13 +28,12 @@ package io.github.ajoz.functions
 
 // with a function like this:
 
-fun first(string: String, count: Int): String =
-        string.take(count) //for the ease of implementation std lib is used
+fun plus(a: Int, b: Int) = a + b
 
 // I cannot invoke it with only one argument
-// val firstInWord: (Int) -> String = first("Word")
+// val plus1 = plus(1)
 
-// I cannot invoke it in a classic way: take("some string", 2)
+// to use the partially applied function later
 
 // - it was designed to allow easy creation of DSL's and primarily is Object
 // Oriented
@@ -85,6 +84,9 @@ val naff = needsAFunctionFirst({ s -> s.length }, "This is ugly")
 // values on the list with said function:
 
 fun <T, R> map1(list: List<T>, function: (T) -> R): List<R> = list.map(function)
+
+fun first(string: String, count: Int): String =
+        string.take(count) //for the ease of implementation std lib is used
 
 // Let's also use first function that takes a string and returns its n first elements
 
