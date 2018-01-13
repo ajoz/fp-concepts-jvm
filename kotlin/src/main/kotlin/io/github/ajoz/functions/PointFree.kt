@@ -1,39 +1,151 @@
 package io.github.ajoz.functions
 
-// One of the talks that took place on Mobilization 2017 I enjoyed the most was
-// a talk about FP in Kotlin by Jorge Castillo called "Functional approach to
-// Android architecture using Kotlin"
+/*
+It's been around 4 months since Mobilization 2017 and I'm still watching the talks
+I missed during the conference. One of the presentations I really enjoyed was
+"Functional approach to Android architecture using Kotlin" by Jorge Castillo.
 
-// Everything was fine until I read the description of the presentation on
-// realm.io, especially this part "Kotlin is arising as one of the most powerful
-// functional languages".
+I was surprised it's available not only on JUG Łódź youtube channel but also on
+realm.io with a full transcript (sic!). I strongly suggest you to check it out
+on their site.
 
-// The "most powerful" part was the thing that made me think. Is it really that
-// powerful and how one defines power?
+Everything would be fine if not for a one sentence in the description of the talk:
 
-// I cannot say for anyone else then me, but I think that conciseness of
-// expressing intent behind the code is something of utmost importance. I know
-// that there are extremes in everything. It's possible to write a one line
-// program in APL or 50k line behemoth in Java and barely anyone would understand
-// what is going on there.
+> "Kotlin is arising as one of the most powerful functional languages".
 
-// Kotlin advantages:
-// - syntax is shorter then in Java
-// - standalone functions
-// - although functions are objects in disguise there is nice syntax for
-// declaring them and invoking them
+Imho this is a bit of exaggeration, especially unfair for Scala, Clojure and ETA.
+I even checked what did we have in the description on the Mobilization site:
 
-// Kotlin disadvantages:
-// - functions are not curried by default
+> "Modern languages with functional colors are mainstream lately. Kotlin is
+> arising as one of the most powerful ones"
 
-// with a function like this:
+Ok so it was "most powerful with functional colors". Someone just did a
+an unfortunate mental shortcut when writing the description, regardless this
+"most powerful" thing made me think. Is Kotlin really that powerful and how one
+defines programming language power?
+
+Starting with advantages.
+
+Kotlin's syntax is much more concise then Java's (for me it's a main selling point
+on the JVM, after years of working with Java 6).
+
+Language allows for standalone functions, they are still objects in disguise
+(this is JVM we are talking about here) but there is a really nice syntax for declaring and invoking them.
+
+Is this enough to contend the title of "most powerful" functional language?
+
+I think not. Kotlin is limited by it's syntax and design decisions, in other words
+FP was imho not it's primary vision of usage. (I don't say this was a bad decision!)
+
+FP is mainly about functions and their composition, let's look how Kotlin fairs
+in this department.
+*/
+
+// foo :: String -> Int
+fun foo(s: String): Int =
+        s.length
+
+// bar :: Int -> Boolean
+fun bar(i: Int): Boolean =
+        i.mod(2) == 0
+/*
+Now I want to have a function from type String to type Boolean, we could achieve
+it with function composition.
+
+Unfortunately Kotlin has none in the standard library. This is a real shame as
+Java 8 that introduced Function interface gave programmers andThen and compose
+methods in said interface.
+
+So what choices do we have? Either we invoke those two functions and compose
+them in place of the call:
+*/
+
+// baz1 :: String -> Boolean
+fun baz1(s: String): Boolean =
+        bar(foo(s))
+
+// or we define our own method of function composition. Thanks to the feature
+// of extension methods it's super simple in Kotlin.
+
+// andThen :: (a -> b) -> (b -> c) -> (a -> c)
+infix fun <A, B, C> ((A) -> B).andThen(f: (B) -> C): (A) -> C =
+        { a: A ->
+            f(this(a))
+        }
+
+// now we can write our baz function differently:
+
+// baz2 :: String -> Boolean
+val baz2 = ::foo andThen ::bar
+
+/*
+It was really easy (this is why I like this language) but on the other hand composition
+is missing from the standard library. Someone asked about it on the official
+forums and got a replay:
+
+> "No, it’s not in the standard library. Function composition is very important
+> in certain programming styles, and almost never occurs in others."
+
+This quote is not an accusation from my side, just a confirmation that FP was not
+the goal of the designers. There are wonderful libraries that fill this gap like:
+funKtionale or arrow (former Kategory) which I strongly advise to check.
+
+Ok, so no function composition by default, what about currying and partial application?
+
+Let's say I have a function for adding two Int values:
+ */
 
 fun plus(a: Int, b: Int) = a + b
 
-// I cannot invoke it with only one argument
-// val plus1 = plus(1)
+/*
+Now I would like to partially apply it with first argument, let's say 1 to get a
+one argument function that is always adding 1 to whatever else is passed to it.
 
-// to use the partially applied function later
+Writing something like:
+
+val plus1: (Int) -> Int = curriedPlus(1)
+
+is just not possible, unless we do some extension magic again:
+*/
+
+fun <A, B, C> curry(f: (A, B) -> C): (A) -> (B) -> C =
+        { a: A ->
+            { b: B ->
+                f(a, b)
+            }
+        }
+
+// and now I can:
+val curriedPlus: (Int) -> (Int) -> Int = curry(::plus)
+val plus1 = curriedPlus(1)
+
+/*
+
+What about doing this the other way around? We need to write it ourselves again:
+ */
+
+fun <A, B, C> uncurry(f: (A) -> (B) -> C): (A, B) -> C =
+        { a: A, b: B -> f(a)(b) }
+
+val uncurriedPlus: (Int, Int) -> Int = uncurry(curriedPlus)
+
+/*
+Yet again external libraries have our back here. I know that the beauty is in the
+eye of the beholder, but there is some ugliness in Kotlin syntax if we want to
+work with curried forms of functions. It's visible in the uncurry implementation,
+where we had to call the curried function like this `f(a)(b)`.
+
+I think Brian Lonsdorf called it "weird butt looking thing" in one his JS FP talks,
+it's hard to disagree with the description. Still I understand why it looks like
+this and it's much much much (I can't even express how much) better then Java's
+`f.apply(a).apply(b)`.
+
+There is also one more ugly thing, which is the amount of bracers used. This is
+a conscious language design decision, but a long enough curried function will look
+like a "bracer orgy" and readability might suffer (as usual your mileage might vary).
+
+Staying on the topic of design decisions
+ */
 
 // - it was designed to allow easy creation of DSL's and primarily is Object
 // Oriented
@@ -126,7 +238,7 @@ val listOfStringsShort2: List<String> = map2(first2(2))(listOfStrings1)
 
 
 val firstTwo: (String) -> String = first2(2)
-val firstTwoLetters: (List<String>) -> List<String>  = map2(firstTwo)
+val firstTwoLetters: (List<String>) -> List<String> = map2(firstTwo)
 
 // now we can pass firsTwoLetters function anywhere
 
@@ -136,7 +248,6 @@ fun <T, R> foldLeft(f: (R, T) -> R): (R) -> (List<T>) -> R =
         { initial ->
             { list -> list.fold(initial, f) }
         }
-
 
 
 // a map can be expressed in terms of fold
