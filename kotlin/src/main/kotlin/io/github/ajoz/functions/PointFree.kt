@@ -95,10 +95,11 @@ Ok, so no function composition by default, what about currying and partial appli
 Let's say I have a function for adding two Int values:
  */
 
-fun plus(a: Int, b: Int) = a + b
+fun plus(a: Int, b: Int) =
+        a + b
 
 /*
-Now I would like to partially apply it with first argument, let's say 1 to get a
+Now I would like to partially apply it with firstCharacter argument, let's say 1 to get a
 one argument function that is always adding 1 to whatever else is passed to it.
 
 Writing something like:
@@ -124,7 +125,9 @@ What about doing this the other way around? We need to write it ourselves again:
  */
 
 fun <A, B, C> uncurry(f: (A) -> (B) -> C): (A, B) -> C =
-        { a: A, b: B -> f(a)(b) }
+        { a: A, b: B ->
+            f(a)(b)
+        }
 
 val uncurriedPlus: (Int, Int) -> Int = uncurry(curriedPlus)
 
@@ -189,10 +192,11 @@ and some sugar (I like it). This is explained in the docs:
 >}
 
 Due to mentioned DSL design decision any higher order function that takes
-function as the first argument looks hideous with a lambda.
+function as the firstCharacter argument looks hideous with a lambda.
  */
 
-fun qux1(f: (String) -> Int, s: String): Int = f(s)
+fun qux1(f: (String) -> Int, s: String): Int =
+        f(s)
 
 // using it:
 
@@ -229,7 +233,7 @@ fun <T, R> map1(list: List<T>, function: (T) -> R): List<R> =
         list.map(function)
 
 /*
-It takes list as a first argument and function as the last, allowing us to use
+It takes list as a firstCharacter argument and function as the last, allowing us to use
 DSL sugar.
  */
 
@@ -239,23 +243,28 @@ val map1v1 = map1(listOf("This", "is a", "list")) {
 
 /*
 But what if we would need to compose it? Let's say we need a function that takes
-a list of strings and returns another list containing only the first character.
+a list of strings and returns another list containing only the firstCharacter character.
 
-Our function that returns first character can look like this:
+Our function that returns firstCharacter character can look like this:
  */
 
 // I'm using existing extensions just to have a working example
-fun first(string: String): String =
+fun firstCharacter(string: String): String =
         string.take(1)
 
 // getting a value is easy but how to create the needed function?
 val firstLetterV1 = map1(listOf("This", "is a", "list")) {
-    first(it)
+    firstCharacter(it)
 }
+
+fun firstLetters(list: List<String>): List<String> =
+        map1(list) {
+            firstCharacter(it)
+        }
 
 /*
 To get the needed function we need to redefine our map implementation:
-- the order of arguments needs to be swapped (function should be first)
+- the order of arguments needs to be swapped (function should be firstCharacter)
 - it needs to be curried by default (partial application should be possible)
 */
 
@@ -266,19 +275,19 @@ fun <T, R> map2(function: (T) -> R): (List<T>) -> List<R> =
 
 // Let's give it a spin and construct a value:
 
-val firstLetterV2 = map2(::first)(listOf("This", "is a", "list"))
+val firstLetterV2 = map2(::firstCharacter)(listOf("This", "is a", "list"))
 
-// we can now define the firstLetter function as a composition
+// we can now define the firstLetters function as a composition
 
-val firstLetter= map2(::first)
+val firstLetter= map2(::firstCharacter)
 
 /*
-We can now pass our firstLetter function wherever a List<String> -> List<String>
+We can now pass our firstLetters function wherever a List<String> -> List<String>
 is needed, we can compose it to create a more complicated functions, we can run
 it.
 
 So what does it say about the Kotlin's power? I won't deny that I would pick it
-over Java any day but I can't agree its "the most powerful functional language"
+over Java any day of a month, but I can't agree its "the most powerful functional language"
 out there available.
 
 We managed to add all the missing but needed functionality through library
