@@ -120,7 +120,6 @@ val curriedPlus: (Int) -> (Int) -> Int = curry(::plus)
 val plus1 = curriedPlus(1)
 
 /*
-
 What about doing this the other way around? We need to write it ourselves again:
  */
 
@@ -144,19 +143,13 @@ There is also one more ugly thing, which is the amount of bracers used. This is
 a conscious language design decision, but a long enough curried function will look
 like a "bracer orgy" and readability might suffer (as usual your mileage might vary).
 
-Staying on the topic of design decisions
- */
+I think that DSL's where the primary focus of the language. When learning Kotlin
+from it's great reference docs, it's easy to understand the DSL heritage after reading
+"type-safe" builders example. The syntactic sugar was made especially for that.
 
-// - it was designed to allow easy creation of DSL's and primarily is Object
-// Oriented
+A minute of browsing through the available API allows to find less complicated
+example of this "sugar" in action:
 
-// Just browsing through the available API it's easy to notice
-// that most of the functions are defined as extensions to some existing types
-// and even if those extension functions need a function it's always placed
-// as a last one. This is supposed to make them look like language elements
-// Example
-
-/*
 public inline fun <R> synchronized(lock: Any, block: () -> R): R {
     @Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE", "INVISIBLE_MEMBER")
     monitorEnter(lock)
@@ -168,106 +161,136 @@ public inline fun <R> synchronized(lock: Any, block: () -> R): R {
         monitorExit(lock)
     }
 }
+
+There are two ways of calling this function: "sugar free" (forgive me this pun)
+and "sugar full".
  */
 
-// This can be used like:
-
 val myLock = Any()
-val someValue = synchronized(myLock) {
-    // some really important code that needs to be synchronized
+val locked1 = synchronized(myLock, { 42 })
+
+// or better (sugary):
+
+val locked2 = synchronized(myLock) {
+    42
 }
 
-// now synchronized function in Kotlin looks like a synchronized block in Java
-// I think that the whole design was rotating around that idea
+/*
+This strangely resembles synchronized block in Java. Kotlin doesn't have a
+reserved "synchronized" keyword, everything can be achieved through a sly function
+and some sugar (I like it). This is explained in the docs:
 
-// - due to mentioned DSL design decision any higher order function that takes
-// function as the first argument looks hideous with a lambda
+> In Kotlin, there is a convention that if the last parameter to a function is a
+> function, and you're passing a lambda expression as the corresponding
+> argument, you can specify it outside of parentheses:
+>
+> lock (lock) {
+>    sharedResource.operation()
+>}
 
-fun needsAFunctionFirst(f: (String) -> Int, s: String): Int = f(s)
+Due to mentioned DSL design decision any higher order function that takes
+function as the first argument looks hideous with a lambda.
+ */
 
-val naff = needsAFunctionFirst({ s -> s.length }, "This is ugly")
+fun qux1(f: (String) -> Int, s: String): Int = f(s)
 
-// Ugly, even without a type declaration for the lambda argument it still looks
-// messy due to the pair of bracers {} surrounding it
+// using it:
 
-// So why is this even a problem?
+val qux1v = qux1({ s -> s.length }, "This looks ugly")
 
-// Let's have a function that takes a list and another function, and maps all
-// values on the list with said function:
+// In a curried form qux function could be invoked differently
 
-fun <T, R> map1(list: List<T>, function: (T) -> R): List<R> = list.map(function)
+val qux2 = curry(::qux1)
 
-fun first(string: String, count: Int): String =
-        string.take(count) //for the ease of implementation std lib is used
+// this way it can be used:
 
-// Let's also use first function that takes a string and returns its n first elements
+val qux2v = qux2 { it.length }("This is less ugly")
 
-val listOfStrings1 = listOf("This", "is a", "list")
-val listOfStringsShort = map1(listOfStrings1) {
-    first(it, 2)
+/*
+We are back to our "weird butt looking" notation, where one of our buttocks is now
+built from bracers. Like I said this is a matter of taste (I don't like it but I don't hate it).
+
+Let's get this DSL stuff out of the way now cause there is one last thing I would like to talk
+about. Kotlin is primarily an Object Oriented language, extension functions are a good
+hint at that. Motivation behind creating them were Util classes known well from
+Java.
+
+So instead of doing `Collections.max(list)` we could do `list.max()`. Which is
+much more in line with OO way of thinking but less with FP. Going back to the
+function composition example, it would be nice to reason about functions without
+the explicit and immediate need of thinking about their data.
+
+Let's take [List#map] function as an example. It returns a list containing the
+results of applying function to each element in the original list. Let's rewrite
+so it's not an extension anymore.
+ */
+
+fun <T, R> map1(list: List<T>, function: (T) -> R): List<R> =
+        list.map(function)
+
+/*
+It takes list as a first argument and function as the last, allowing us to use
+DSL sugar.
+ */
+
+val map1v1 = map1(listOf("This", "is a", "list")) {
+    it.length
 }
 
-// even if we use it, it's still messy and is glued to the data it's processing
-// I cannot construct a composition of map1 and first as a new function called
-// firstTwoWords
+/*
+But what if we would need to compose it? Let's say we need a function that takes
+a list of strings and returns another list containing only the first character.
 
-// To be perfectly honest the order doesn't matter as the functions are not
-// curried by default
+Our function that returns first character can look like this:
+ */
 
-// - due to the same DSL design decision curried function definition looks awful
+// I'm using existing extensions just to have a working example
+fun first(string: String): String =
+        string.take(1)
 
-// Let's redefine our map and first functions:
-// - swap the order of arguments (functions first)
-// - change them to a curried form so instead of (A, B, C) -> D it should be
-// (A) -> (B) -> (C) -> D
-
-fun <T, R> map2(function: (T) -> R): (List<T>) -> List<R> = { list ->
-    list.map(function)
+// getting a value is easy but how to create the needed function?
+val firstLetterV1 = map1(listOf("This", "is a", "list")) {
+    first(it)
 }
 
-fun first2(count: Int): (String) -> String = { string ->
-    string.take(count)
-}
+/*
+To get the needed function we need to redefine our map implementation:
+- the order of arguments needs to be swapped (function should be first)
+- it needs to be curried by default (partial application should be possible)
+*/
 
-// getting back to previous example:
-
-val listOfStringsShort2: List<String> = map2(first2(2))(listOfStrings1)
-
-// this doesn't look better at all
-// what if we don't pass the value at all
-
-
-val firstTwo: (String) -> String = first2(2)
-val firstTwoLetters: (List<String>) -> List<String> = map2(firstTwo)
-
-// now we can pass firsTwoLetters function anywhere
-
-
-//cheating a bit and implementing foldLeft with List.fold
-fun <T, R> foldLeft(f: (R, T) -> R): (R) -> (List<T>) -> R =
-        { initial ->
-            { list -> list.fold(initial, f) }
+fun <T, R> map2(function: (T) -> R): (List<T>) -> List<R> =
+        { list ->
+            list.map(function)
         }
 
+// Let's give it a spin and construct a value:
 
-// a map can be expressed in terms of fold
-fun <T, R> map(f: (T) -> R): (List<T>) -> List<R> = {
-    foldLeft<T, List<R>> { r, t ->
-        r + listOf(f(t))
-    }(emptyList())(it)
-}
+val firstLetterV2 = map2(::first)(listOf("This", "is a", "list"))
 
-// This causes issues with expressing simple things in concise way very hard in
-// Kotlin or at least you need to bare the bracers orgy ;-)
+// we can now define the firstLetter function as a composition
+
+val firstLetter= map2(::first)
+
+/*
+We can now pass our firstLetter function wherever a List<String> -> List<String>
+is needed, we can compose it to create a more complicated functions, we can run
+it.
+
+So what does it say about the Kotlin's power? I won't deny that I would pick it
+over Java any day but I can't agree its "the most powerful functional language"
+out there available.
+
+We managed to add all the missing but needed functionality through library
+functions and extensions, but the language and its stdlib didn't support
+everything out the box.
+
+Syntax tailored more towards DSL's might prove less readable in FP context, but
+it doesn't mean it won't be possible to do FP with it (as we easily demonstrated).
+ */
 
 
-fun main(args: Array<String>) {
-    val l = listOf(1, 2, 3)
-    val plus10 = { x: Int -> x + 10 }
 
-    // we did nice composition of functions thanks to the fact that we take function first
-    val mapPlus10 = map(plus10)
 
-    println(mapPlus10(l))
-}
+
 
