@@ -3,6 +3,7 @@ package io.github.ajoz.validation;
 import static io.github.ajoz.util.Functions.constant;
 import io.github.ajoz.util.Functor;
 import io.github.ajoz.util.Semigroup;
+import static java.util.function.Function.identity;
 
 import java.util.function.Function;
 
@@ -15,6 +16,7 @@ public abstract class Validation<E extends Semigroup<E>, A> implements Functor<A
             this.value = value;
         }
 
+        // map :: (a -> b) -> Validation err a -> Validation err b
         @Override
         public <B> Validation<E, B> map(final Function<A, B> function) {
             return new Success<>(function.apply(value));
@@ -88,7 +90,7 @@ public abstract class Validation<E extends Semigroup<E>, A> implements Functor<A
     }
 
     public <B> Validation<E, B> apRight(final Validation<E, B> other) {
-        final Function<Validation<E, A>, Validation<E, Function<B, B>>> vid = mapConst(Function.<B>identity());
+        final Function<Validation<E, A>, Validation<E, Function<B, B>>> vid = mapConst(identity());
         final Validation<E, Function<B, B>> fmapped = vid.apply(this);
         return ap(fmapped, other);
     }
