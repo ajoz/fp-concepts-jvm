@@ -21,11 +21,20 @@ sealed class Validation<E : Semigroup<E>, A> : Functor<A> {
 
     abstract fun <B> flatMap(func: (A) -> Validation<E, B>): Validation<E, B>
 
-    infix fun <B> apLeft(other: Validation<E, B>) =
-            map(constant<A, B>()) ap other
+    /* We would like to sequence actions, discarding the value of the first
+       argument.
 
-    infix fun <B> apRight(other: Validation<E, B>) =
-            mapConst<(B) -> B, A, E>(::identity)(this) ap other
+       
+
+       apLeft :: Validation err a -> Validation err b -> Validation err a
+
+     */
+    infix fun <B> apLeft(other: Validation<E, B>): Validation<E, A> =
+            this map constant<A, B>() ap other
+
+    // apRight :: Validation err a -> Validation err b -> Validation err b
+    infix fun <B> apRight(other: Validation<E, B>): Validation<E, B> =
+            this map constant<(B) -> B, A>(::identity) ap other
 
     data class Success<E : Semigroup<E>, A>(override val value: A) : Validation<E, A>() {
         override fun isSuccess() = true
@@ -39,9 +48,6 @@ sealed class Validation<E : Semigroup<E>, A> : Functor<A> {
         override fun <B> flatMap(func: (A) -> Validation<E, B>) = Failure<E, B>(error)
     }
 }
-
-fun <A, B, E : Semigroup<E>> mapConst(a: A): (Validation<E, B>) -> Validation<E, A> =
-        { validation -> validation map constant(a) }
 
 // smart casts and when expression for the win!
 infix fun <E : Semigroup<E>, A, B> Validation<E, (A) -> B>.ap(other: Validation<E, A>): Validation<E, B> =
