@@ -1,18 +1,15 @@
 package io.github.ajoz
 
-fun <A, B> constant(): (A) -> (B) -> A = { a ->
-    { _ ->
-        a
-    }
-}
+@Suppress("UNUSED_PARAMETER")
+fun <A, B> constant(a: A, b: B): A = a
 
-fun <A, B> constant(a: A): (B) -> A = { _ ->
-    a
-}
+fun <A, B> constant(): (A) -> (B) -> A =
+        curry<A, B, A>(::constant)
 
-fun <A> identity(): (A) -> A = { a ->
-    a
-}
+fun <A, B> constant(a: A): (B) -> A =
+        curry<A, B, A>(::constant)(a)
+
+fun <A> identity(a: A): A = a
 
 fun <A, B, C> curry(func: (A, B) -> C): (A) -> (B) -> C =
         { a: A ->

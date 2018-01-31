@@ -17,22 +17,26 @@ sealed class Validation<E : Semigroup<E>, A> : Functor<A> {
     abstract fun isSuccess(): Boolean
     fun isFailure() = !isSuccess()
 
-    override abstract fun <B> map(func: (A) -> B): Validation<E, B>
+    abstract override fun <B> map(func: (A) -> B): Validation<E, B>
+
+    abstract fun <B> flatMap(func: (A) -> Validation<E, B>): Validation<E, B>
 
     infix fun <B> apLeft(other: Validation<E, B>) =
             map(constant<A, B>()) ap other
 
     infix fun <B> apRight(other: Validation<E, B>) =
-            mapConst<(B) -> B, A, E>(identity())(this) ap other
+            mapConst<(B) -> B, A, E>(::identity)(this) ap other
 
     data class Success<E : Semigroup<E>, A>(override val value: A) : Validation<E, A>() {
         override fun isSuccess() = true
         override fun <B> map(func: (A) -> B) = Success<E, B>(func(value))
+        override fun <B> flatMap(func: (A) -> Validation<E, B>) = func(value)
     }
 
     data class Failure<E : Semigroup<E>, A>(override val error: E) : Validation<E, A>() {
         override fun isSuccess() = false
         override fun <B> map(func: (A) -> B) = Failure<E, B>(error)
+        override fun <B> flatMap(func: (A) -> Validation<E, B>) = Failure<E, B>(error)
     }
 }
 

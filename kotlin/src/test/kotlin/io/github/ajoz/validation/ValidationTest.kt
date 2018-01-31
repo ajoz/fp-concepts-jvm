@@ -9,45 +9,48 @@ import org.junit.Test
 typealias ValidString = Success<NonEmptyList<String>, String>
 typealias InvalidString = Failure<NonEmptyList<String>, String>
 
+typealias ValidInt = Success<NonEmptyList<String>, Int>
+typealias InvalidInt = Failure<NonEmptyList<String>, Int>
+
 class ValidationTest {
     @Test(expected = NoSuchElementException::class)
-    fun errorPropShouldThrowExceptionForSuccess() {
+    fun `error property should throw NoSuchElementException for a Success`() {
         val success = ValidString("Test")
         success.error
     }
 
     @Test(expected = NoSuchElementException::class)
-    fun valuePropShouldThrowExceptionForFailure() {
+    fun `value property should throw NoSuchElementException for a Failure`() {
         val failure = InvalidString(NonEmptyList("Error!"))
         failure.value
     }
 
     @Test
-    fun shouldReturnTrueForSuccess() {
+    fun `isSuccess should return true for a Success`() {
         val success = ValidString("Test")
         assertTrue(success.isSuccess())
     }
 
     @Test
-    fun shouldReturnFalseForSuccess() {
+    fun `isFailure should return false for a Success`() {
         val success = ValidString("Test")
         assertFalse(success.isFailure())
     }
 
     @Test
-    fun shouldReturnTrueForFailure() {
+    fun `isFailure should return true for a Failure`() {
         val failure = InvalidString(NonEmptyList("Error!"))
         assertTrue(failure.isFailure())
     }
 
     @Test
-    fun shouldReturnFalseForFailure() {
+    fun `isSuccess should return false for a Failure`() {
         val failure = InvalidString(NonEmptyList("Error!"))
         assertFalse(failure.isSuccess())
     }
 
     @Test
-    fun shouldMapASuccess() {
+    fun `should map over a Success`() {
         val string  = "Test"
         val success = ValidString(string)
 
@@ -57,12 +60,22 @@ class ValidationTest {
     }
 
     @Test
-    fun shouldNotMapAFailure() {
+    fun `should not map over a Failure`() {
         val errors = NonEmptyList("Error!")
         val failure = InvalidString(errors)
 
         val actual = failure.map { s -> s.length }.error
 
         assertEquals(errors, actual)
+    }
+
+    @Test
+    fun `should flatMap a Success`() {
+        val string = "Test"
+        val success = ValidString(string)
+
+        val actual = success.flatMap { s -> ValidInt(s.length) }
+
+        assertEquals(string.length, actual.value)
     }
 }
