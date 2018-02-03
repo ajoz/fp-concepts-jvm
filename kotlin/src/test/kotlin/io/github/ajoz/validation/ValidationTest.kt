@@ -4,7 +4,9 @@ import io.github.ajoz.NonEmptyList
 
 import io.github.ajoz.validation.Validation.Failure
 import io.github.ajoz.validation.Validation.Success
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 typealias StrErr = NonEmptyList<String>
@@ -111,7 +113,7 @@ class ValidationTest {
         val errors = StrErr("Error!")
         val sut = InvalidString(errors)
 
-        val actual = sut.flatMap { s -> InvalidInt(errors) }
+        val actual = sut.flatMap { _ -> InvalidInt(errors) }
 
         assertTrue(actual.isFailure())
         assertEquals(errors, actual.error)

@@ -47,7 +47,7 @@ fun foo(s: String): Int =
 
 // bar :: Int -> Boolean
 fun bar(i: Int): Boolean =
-        i.mod(2) == 0
+        i.rem(2) == 0
 /*
 Now I want to have a function from type String to type Boolean, we could achieve
 it with function composition.

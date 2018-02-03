@@ -1,7 +1,9 @@
 package io.github.ajoz.validation
 
 import io.github.ajoz.NonEmptyList
-import io.github.ajoz.validation.EmailError.*
+import io.github.ajoz.validation.EmailError.MustContainAt
+import io.github.ajoz.validation.EmailError.MustContainPeriod
+import io.github.ajoz.validation.EmailError.MustNotBeEmpty
 import io.github.ajoz.validation.Validation.Failure
 import io.github.ajoz.validation.Validation.Success
 import org.junit.Assert.assertEquals
@@ -26,7 +28,7 @@ typealias InvalidEmail = Failure<EmailErrors, Email>
 class EmailTest {
 
     @Test
-    fun shouldFailForMissingAt() {
+    fun `should return a Failure for missing @`() {
         // <*
         val v1 = validateEmailApLeft("bobgmail.com")
         assertTrue(v1.isFailure())
@@ -39,7 +41,7 @@ class EmailTest {
     }
 
     @Test
-    fun shouldFailForMissingPeriod() {
+    fun `should return a Failure for missing period`() {
         // <*
         val v1 = validateEmailApLeft("bob@gmailcom")
         assertTrue(v1.isFailure())
@@ -52,7 +54,7 @@ class EmailTest {
     }
 
     @Test
-    fun shouldFailForEmpty() {
+    fun `should return a Failure for empty email`() {
         // <*
         val v1 = validateEmailApLeft("")
         assertTrue(v1.isFailure())
@@ -65,7 +67,7 @@ class EmailTest {
     }
 
     @Test
-    fun shouldFailForMissingPeriodAndAt() {
+    fun `should return a Failure for missing @ and period`() {
         // <*
         val v1 = validateEmailApLeft("bobgmailcom")
         assertTrue(v1.isFailure())
@@ -78,7 +80,7 @@ class EmailTest {
     }
 
     @Test
-    fun shouldBeSuccessful() {
+    fun `should return a Success for correct email`() {
         val emailAddress = "bob@gmail.com"
         // <*
         val v1 = validateEmailApLeft(emailAddress)
@@ -91,7 +93,7 @@ class EmailTest {
         assertEquals(emailAddress, v2.value)
     }
 
-    @Suppress("MemberVisibilityCanPrivate")
+    @Suppress("MemberVisibilityCanPrivate", "MemberVisibilityCanBePrivate")
     companion object {
         val MUST_CONTAIN_AT = EmailErrors(MustContainAt)
         val MUST_CONTAIN_PERIOD = EmailErrors(MustContainPeriod)
@@ -99,19 +101,19 @@ class EmailTest {
         val MUST_CONTAIN_AT_PERIOD = MUST_CONTAIN_AT append MUST_CONTAIN_PERIOD
         val ALL_MISSING = MUST_NOT_BE_EMPTY append MUST_CONTAIN_AT append MUST_CONTAIN_PERIOD
 
-        fun validateAt(email: Email) =
+        private fun validateAt(email: Email) =
                 if (email.contains("@"))
                     ValidEmail(email)
                 else
                     InvalidEmail(MUST_CONTAIN_AT)
 
-        fun validatePeriod(email: Email) =
+        private fun validatePeriod(email: Email) =
                 if (email.contains("."))
                     ValidEmail(email)
                 else
                     InvalidEmail(MUST_CONTAIN_PERIOD)
 
-        fun validateNonEmpty(email: Email) =
+        private fun validateNonEmpty(email: Email) =
                 if (email.isNotEmpty())
                     ValidEmail(email)
                 else

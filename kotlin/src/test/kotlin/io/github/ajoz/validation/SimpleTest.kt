@@ -11,7 +11,7 @@ typealias IntSuccess = Success<ErrorMessage, Int>
 class SimpleTest {
 
     @Test
-    fun shouldSumTwoValues() {
+    fun `should sum two values`() {
         val first = IntOptSuccess(curry(::plus))
         val second = IntSuccess(1)
         val third = IntSuccess(2)

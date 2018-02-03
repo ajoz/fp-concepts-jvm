@@ -1,6 +1,7 @@
 package io.github.ajoz
 
-import java.util.*
+import java.util.LinkedList
+import java.util.Objects
 
 class NonEmptyList<A> : Semigroup<NonEmptyList<A>>, Functor<A> {
     private val list = LinkedList<A>()
@@ -20,10 +21,10 @@ class NonEmptyList<A> : Semigroup<NonEmptyList<A>>, Functor<A> {
         return NonEmptyList(appened)
     }
 
-    override fun append(other: NonEmptyList<A>): NonEmptyList<A> {
+    override fun append(item: NonEmptyList<A>): NonEmptyList<A> {
         val appened = LinkedList<A>()
         appened.addAll(list)
-        appened.addAll(other.list)
+        appened.addAll(item.list)
         return NonEmptyList(appened)
     }
 
@@ -34,10 +35,10 @@ class NonEmptyList<A> : Semigroup<NonEmptyList<A>>, Functor<A> {
         return "NonEmptyList{$list}"
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        val that = o as NonEmptyList<*>?
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || javaClass != other.javaClass) return false
+        val that = other as NonEmptyList<*>?
         return list == that!!.list
     }
 

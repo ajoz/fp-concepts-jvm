@@ -22,16 +22,17 @@ typealias InvalidAge = Failure<ErrorMessage, Age>
 
 data class Person(val name: String, val email: String, val age: Int)
 
+@Suppress("MemberVisibilityCanBePrivate")
 data class ErrorMessage(val message: String) : Semigroup<ErrorMessage> {
-    override fun append(other: ErrorMessage): ErrorMessage {
-        return ErrorMessage(this.message + "\n" + other.message)
+    override fun append(item: ErrorMessage): ErrorMessage {
+        return ErrorMessage(this.message + "\n" + item.message)
     }
 }
 
 class PersonTest {
 
     @Test
-    fun shouldFailForWrongName() {
+    fun `should return a Failure for a wrong name`() {
         val actual = validatePerson("", "wrong@name.com", 1)
 
         assertTrue(actual.isFailure())
@@ -39,7 +40,7 @@ class PersonTest {
     }
 
     @Test
-    fun shouldFailForWrongEmail() {
+    fun `should return a Failure for a wrong email`() {
         val actual = validatePerson("WrongEmail", "wrongemail.com", 2)
 
         assertTrue(actual.isFailure())
@@ -47,21 +48,21 @@ class PersonTest {
     }
 
     @Test
-    fun shouldFailForWrongAge() {
+    fun `should return a Failure for a wrong age`() {
         val actual = validatePerson("Wrong", "wrong@age.com", 121)
         assertTrue(actual.isFailure())
         assertEquals(WRONG_AGE_ERROR, actual.error)
     }
 
     @Test
-    fun shouldFailForWrongNameEmailAge() {
+    fun `should return a Failure for wrong name and email and age`() {
         val actual = validatePerson("", "all wrong!", 121)
         assertTrue(actual.isFailure())
         assertEquals(WRONG_ALL_ERROR, actual.error)
     }
 
     @Test
-    fun shouldBeSuccessful() {
+    fun `should return a Success for correct Person data`() {
         val person = Person("Foo", "foo@bar.com", 64)
 
         val actual = validatePerson(person.name, person.email, person.age)
@@ -76,19 +77,19 @@ class PersonTest {
         val WRONG_AGE_ERROR = ErrorMessage("Age not between 0 and 120")
         val WRONG_ALL_ERROR = WRONG_NAME_ERROR append WRONG_EMAIL_ERROR append WRONG_AGE_ERROR
 
-        fun validateName(name: Name) =
+        private fun validateName(name: Name) =
                 if (name.length in 1..50)
                     ValidName(name)
                 else
                     InvalidName(WRONG_NAME_ERROR)
 
-        fun validateEmail(email: Email) =
+        private fun validateEmail(email: Email) =
                 if (email.contains("@"))
                     ValidMail(email)
                 else
                     InvalidMail(WRONG_EMAIL_ERROR)
 
-        fun validateAge(age: Age) =
+        private fun validateAge(age: Age) =
                 if (age in 0..120)
                     ValidAge(age)
                 else
