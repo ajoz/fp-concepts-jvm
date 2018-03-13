@@ -1,78 +1,42 @@
 package io.github.ajoz.util;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-/**
- * The Try type represents a computation that may either result in an exception, or return a successfully computed value.
- * It closely resembles scala's implementation. Instances of {@link Try} are either {@link Success} or {@link Failure}
- * instance.
- * <pre>
- * {@code
- *
- * }
- * </pre>
- *
- * @param <T>
- */
 public abstract class Try<T> {
-    /**
-     * Although {@link Try} is an abstract class we only want it to have to subclasses in the form of {@link Success}
-     * and {@link Failure}. Constructor is marked as private so it's only available for private inner classes.
-     */
     private Try() {
     }
 
-    /**
-     * @param recovery
-     * @return
-     */
     public abstract Try<T> recover(final Function<Throwable, T> recovery);
 
-    /**
-     * @param recoveryWith
-     * @return
-     */
     public abstract Try<T> recoverWith(final Function<Throwable, Try<T>> recoveryWith);
 
-    /**
-     * @param predicate
-     * @return
-     */
     public abstract Try<T> filter(final Function<T, Boolean> predicate);
 
-    /**
-     * @param predicate
-     * @return
-     */
     public abstract Try<T> filter(final Predicate<T> predicate);
 
-    /**
-     * @param function
-     * @param <U>
-     * @return
-     */
     public abstract <U> Try<U> flatMap(final Function<T, Try<U>> function);
 
-    /**
-     * @param function
-     * @param <U>
-     * @return
-     */
     public abstract <U> Try<U> map(final Function<T, U> function);
 
-    /**
-     * @param defaultValue
-     * @return
-     */
     public abstract T getOrElse(T defaultValue);
 
-    /**
-     * @param value
-     * @param <U>
-     * @return
-     */
-    public static <U> Try<U> fromNullable(final U value) {
+    public abstract boolean isSuccess();
+
+    public Try<T> ifSuccess(final Consumer<T> action) {
+        return this;
+    }
+
+    public Try<T> ifFailure(final Consumer<Throwable> action) {
+        return this;
+    }
+
+    public boolean isFailure() {
+        return !isSuccess();
+    }
+
+    public static <U> Try<U> ofNullable(final U value) {
         if (null != value) {
             return Try.success(value);
         }
@@ -145,6 +109,17 @@ public abstract class Try<T> {
         public T getOrElse(final T defaultValue) {
             return value;
         }
+
+        @Override
+        public boolean isSuccess() {
+            return true;
+        }
+
+        @Override
+        public Try<T> ifSuccess(final Consumer<T> action) {
+            action.accept(value);
+            return this;
+        }
     }
 
     private static class Failure<T> extends Try<T> {
@@ -187,6 +162,17 @@ public abstract class Try<T> {
         @Override
         public T getOrElse(final T defaultValue) {
             return defaultValue;
+        }
+
+        @Override
+        public boolean isSuccess() {
+            return false;
+        }
+
+        @Override
+        public Try<T> ifFailure(final Consumer<Throwable> action) {
+            action.accept(throwable);
+            return this;
         }
     }
 }
