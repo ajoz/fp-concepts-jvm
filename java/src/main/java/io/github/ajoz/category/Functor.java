@@ -1,4 +1,4 @@
-package io.github.ajoz.util;
+package io.github.ajoz.category;
 
 import java.util.function.Function;
 

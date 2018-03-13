@@ -1,6 +1,6 @@
 package io.github.ajoz.validation;
 
-import io.github.ajoz.util.Semigroup;
+import io.github.ajoz.category.Semigroup;
 
 import java.util.Objects;
 

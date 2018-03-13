@@ -1,8 +1,8 @@
 package io.github.ajoz.validation;
 
 import static io.github.ajoz.util.Functions.constant;
-import io.github.ajoz.util.Functor;
-import io.github.ajoz.util.Semigroup;
+import io.github.ajoz.category.Functor;
+import io.github.ajoz.category.Semigroup;
 import static java.util.function.Function.identity;
 
 import java.util.function.Function;

@@ -1,5 +1,8 @@
 package io.github.ajoz.util;
 
+import io.github.ajoz.category.Functor;
+import io.github.ajoz.category.Semigroup;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
