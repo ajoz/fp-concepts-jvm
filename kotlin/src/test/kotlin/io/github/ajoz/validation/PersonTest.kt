@@ -24,8 +24,8 @@ data class Person(val name: String, val email: String, val age: Int)
 
 @Suppress("MemberVisibilityCanBePrivate")
 data class ErrorMessage(val message: String) : Semigroup<ErrorMessage> {
-    override fun append(item: ErrorMessage): ErrorMessage {
-        return ErrorMessage(this.message + "\n" + item.message)
+    override fun append(other: ErrorMessage): ErrorMessage {
+        return ErrorMessage(this.message + "\n" + other.message)
     }
 }
 

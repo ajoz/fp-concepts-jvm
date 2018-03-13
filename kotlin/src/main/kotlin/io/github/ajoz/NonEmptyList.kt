@@ -21,10 +21,10 @@ class NonEmptyList<A> : Semigroup<NonEmptyList<A>>, Functor<A> {
         return NonEmptyList(appened)
     }
 
-    override fun append(item: NonEmptyList<A>): NonEmptyList<A> {
+    override fun append(other: NonEmptyList<A>): NonEmptyList<A> {
         val appened = LinkedList<A>()
         appened.addAll(list)
-        appened.addAll(item.list)
+        appened.addAll(other.list)
         return NonEmptyList(appened)
     }
 
