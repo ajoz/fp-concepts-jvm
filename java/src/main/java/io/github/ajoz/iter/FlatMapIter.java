@@ -6,18 +6,22 @@ import java.util.function.Function;
 
 public class FlatMapIter<T, R> implements Iter<R> {
     private final Iter<T> upstream;
-    private final Function<T, Try<R>> flatMapper;
+    private final Function<T, Iter<R>> mapper;
 
     public FlatMapIter(final Iter<T> upstream,
-                       final Function<T, Try<R>> flatMapper) {
+                       final Function<T, Iter<R>> mapper) {
         this.upstream = upstream;
-        this.flatMapper = flatMapper;
+        this.mapper = mapper;
     }
 
     @Override
     public Try<R> next() {
         return upstream
                 .next()
-                .flatMap(flatMapper);
+                .flatMap(
+                        t -> mapper
+                                .apply(t)
+                                .next()
+                );
     }
 }
