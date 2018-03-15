@@ -4,12 +4,12 @@ import io.github.ajoz.util.Try;
 
 import java.util.function.Function;
 
-public class MapIter<T, R> implements Iter<R> {
+public final class MapIter<T, R> implements Iter<R> {
     private final Iter<T> upstream;
-    private final Function<T, R> mapper;
+    private final Function<? super T, ? extends R> mapper;
 
     public MapIter(final Iter<T> upstream,
-            final Function<T, R> mapper) {
+                   final Function<? super T, ? extends R> mapper) {
         this.upstream = upstream;
         this.mapper = mapper;
     }

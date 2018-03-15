@@ -4,9 +4,10 @@ import io.github.ajoz.util.Try;
 
 import java.util.NoSuchElementException;
 
-public class TakeIter<T> implements Iter<T> {
+public final class TakeIter<T> implements Iter<T> {
     private final Iter<T> upstream;
     private final int amount;
+
     private int taken;
 
     public TakeIter(final Iter<T> upstream,

@@ -15,11 +15,11 @@ public abstract class Try<T> {
 
     public abstract Try<T> filter(final Function<T, Boolean> predicate);
 
-    public abstract Try<T> filter(final Predicate<T> predicate);
+    public abstract Try<T> filter(final Predicate<? super T> predicate);
 
-    public abstract <U> Try<U> flatMap(final Function<T, Try<U>> function);
+    public abstract <U> Try<U> flatMap(final Function<? super T, ? extends Try<? extends U>> function);
 
-    public abstract <U> Try<U> map(final Function<T, U> function);
+    public abstract <U> Try<U> map(final Function<? super T, ? extends U> function);
 
     public abstract T getOrElse(T defaultValue);
 
@@ -27,7 +27,7 @@ public abstract class Try<T> {
 
     public abstract boolean isSuccess();
 
-    public Try<T> ifSuccess(final Consumer<T> action) {
+    public Try<T> ifSuccess(final Consumer<? super T> action) {
         return this;
     }
 
@@ -96,7 +96,7 @@ public abstract class Try<T> {
         }
 
         @Override
-        public Try<T> filter(final Predicate<T> predicate) {
+        public Try<T> filter(final Predicate<? super T> predicate) {
             if (predicate.test(value)) {
                 return Try.success(value);
             } else {
@@ -108,13 +108,14 @@ public abstract class Try<T> {
             }
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public <U> Try<U> flatMap(final Function<T, Try<U>> function) {
-            return function.apply(value);
+        public <U> Try<U> flatMap(final Function<? super T, ? extends Try<? extends U>> function) {
+            return (Try<U>) function.apply(value);
         }
 
         @Override
-        public <U> Try<U> map(final Function<T, U> function) {
+        public <U> Try<U> map(final Function<? super T, ? extends U> function) {
             return Try.success(function.apply(value));
         }
 
@@ -134,7 +135,7 @@ public abstract class Try<T> {
         }
 
         @Override
-        public Try<T> ifSuccess(final Consumer<T> action) {
+        public Try<T> ifSuccess(final Consumer<? super T> action) {
             action.accept(value);
             return this;
         }
@@ -163,17 +164,17 @@ public abstract class Try<T> {
         }
 
         @Override
-        public Try<T> filter(final Predicate<T> predicate) {
+        public Try<T> filter(final Predicate<? super T> predicate) {
             return Try.failure(throwable);
         }
 
         @Override
-        public <U> Try<U> flatMap(final Function<T, Try<U>> function) {
+        public <U> Try<U> flatMap(final Function<? super T, ? extends Try<? extends U>> function) {
             return Try.failure(throwable);
         }
 
         @Override
-        public <U> Try<U> map(final Function<T, U> function) {
+        public <U> Try<U> map(final Function<? super T, ? extends U> function) {
             return Try.failure(throwable);
         }
 

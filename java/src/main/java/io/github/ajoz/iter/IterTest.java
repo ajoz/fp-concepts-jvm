@@ -10,34 +10,33 @@ public class IterTest {
          code won't process the given array of Strings.
          */
         final Iter<String> strings = new ArrayIter<>("This", "is", "a", "basic", "test");
-        final Iter<String> peeks = new PeekIter<>(strings, System.out::println);
+        final Iter<String> peeks = new OnEachIter<>(strings, System.out::println);
         final Iter<Integer> mapped = new MapIter<>(peeks, String::length);
         final Iter<Integer> filtered = new FilterIter<>(mapped, length -> length > 2);
         final Iter<Integer> taken = new TakeIter<>(filtered, 2);
 //        Iters.forEach(System.out::println, taken);
 
 
-        final Iter<Integer> iterator =
-                Iter.from("This", "is", "a", "very", "basic", "test", "of", "Iter")
-                        .onEach(System.out::println)
-                        .map(String::length)
-                        .filter(len -> len > 2)
-                        .take(1);
-
-//        Iters.forEach(System.out::println, iterator);
+//        final Iter<Integer> iterator =
+        Iter.from("This", "is", "a", "very", "basic", "test", "of", "Iter")
+                .onEach(System.out::println)
+                .map(String::length)
+                .filter(len -> len > 2)
+                .take(1);
+        // .forEach(System.out::println); or passing the reference to Iter directly
+        // Iters.forEach(System.out::println, iterator);
 
         /*
          This is a potentially infinite operation that might result with out
          of memory error.
          */
-        Iter.from(0, i -> i + 1)
-                .map(x -> x * 2)
-                .take(10)
-                .forEach(System.out::println);
+        final Iter<Integer> iterator =
+                Iter.from(0, i -> i + 1)
+                        .map(x -> x * 2)
+                        .take(10);
 
-        final Iter<Integer> integerIter = Iter.from(1, 2, 3, 4, 5, 6, 7);
-        final Iterable<Integer> integers = Iters.toIterable(integerIter);
-        for (final Integer integer : integers) {
+        // although Iter<T> extends Iterable<T> .for live template does not work :(
+        for (final Integer integer : iterator) {
             System.out.println("item: " + integer);
         }
     }

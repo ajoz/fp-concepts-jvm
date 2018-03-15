@@ -4,12 +4,12 @@ import io.github.ajoz.util.Try;
 
 import java.util.function.Function;
 
-public class FlatMapIter<T, R> implements Iter<R> {
+public final class FlatMapIter<T, R> implements Iter<R> {
     private final Iter<T> upstream;
-    private final Function<T, Iter<R>> mapper;
+    private final Function<? super T, ? extends Iter<? extends R>> mapper;
 
     public FlatMapIter(final Iter<T> upstream,
-                       final Function<T, Iter<R>> mapper) {
+                       final Function<? super T, ? extends Iter<? extends R>> mapper) {
         this.upstream = upstream;
         this.mapper = mapper;
     }
@@ -18,10 +18,6 @@ public class FlatMapIter<T, R> implements Iter<R> {
     public Try<R> next() {
         return upstream
                 .next()
-                .flatMap(
-                        t -> mapper
-                                .apply(t)
-                                .next()
-                );
+                .flatMap(t -> mapper.apply(t).next());
     }
 }

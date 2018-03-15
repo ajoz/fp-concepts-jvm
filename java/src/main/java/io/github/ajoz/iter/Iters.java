@@ -5,7 +5,7 @@ import io.github.ajoz.util.Try;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
-public class Iters {
+public final class Iters {
     public static <T> void forEach(final Consumer<T> action,
                                    final Iter<T> iter) {
         do {

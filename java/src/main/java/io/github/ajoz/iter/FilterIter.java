@@ -4,12 +4,12 @@ import io.github.ajoz.util.Try;
 
 import java.util.function.Predicate;
 
-public class FilterIter<T> implements Iter<T> {
+public final class FilterIter<T> implements Iter<T> {
     private final Iter<T> upstream;
-    private final Predicate<T> predicate;
+    private final Predicate<? super T> predicate;
 
     public FilterIter(final Iter<T> upstream,
-                      final Predicate<T> predicate) {
+                      final Predicate<? super T> predicate) {
         this.upstream = upstream;
         this.predicate = predicate;
     }

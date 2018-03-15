@@ -2,6 +2,8 @@ package io.github.ajoz.iter;
 
 import io.github.ajoz.util.Try;
 
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -31,39 +33,52 @@ import java.util.function.Predicate;
 
  Also didn't choose Seq, Sequence or Stream for similar reason.
 */
-public interface Iter<T> {
+public interface Iter<T> extends Iterable<T> {
     Try<T> next();
 
-    default <R> Iter<R> map(final Function<T, R> mapper) {
+    default <R> Iter<R> map(final Function<? super T, ? extends R> mapper) {
+        Objects.requireNonNull(mapper, "Function passed to Iter.map cannot be null!");
         return new MapIter<>(this, mapper);
     }
 
-    default <R> Iter<R> flatMap(final Function<T, Iter<R>> mapper) {
+    default <R> Iter<R> flatMap(final Function<? super T, ? extends Iter<? extends R>> mapper) {
+        Objects.requireNonNull(mapper, "Function passed to Iter.flatMap cannot be null!");
         return new FlatMapIter<>(this, mapper);
     }
 
-    default Iter<T> filter(final Predicate<T> predicate) {
+    default Iter<T> filter(final Predicate<? super T> predicate) {
+        Objects.requireNonNull(predicate, "Predicate passed to Iter.filter cannot be null!");
         return new FilterIter<>(this, predicate);
     }
 
-    default Iter<T> onEach(final Consumer<T> action) {
-        return new PeekIter<>(this, action);
+    default Iter<T> onEach(final Consumer<? super T> action) {
+        Objects.requireNonNull(action, "Consumer passed to Iter.onEach cannot be null!");
+        return new OnEachIter<>(this, action);
     }
 
+    // there is no type that would allow expressing a need for positive integers
+    // without zero :> like natural numbers
     default Iter<T> take(final int amount) {
         return new TakeIter<>(this, amount);
     }
 
-    default void forEach(final Consumer<T> action) {
-        Iters.forEach(action, this);
+    default Iterator<T> iterator() {
+        return new IterIterator<>(this);
     }
 
     @SafeVarargs
+    @SuppressWarnings("varargs") // if creating a Stream from an array is safe then creating an Iter is ;-)
     static <U> Iter<U> from(final U... items) {
+        Objects.requireNonNull(items, "Array passed to Iter.from cannot be null!");
         return new ArrayIter<>(items);
     }
 
-    static <U> Iter<U> from(final U seed, final Function<U, U> fun) {
-        return new Seed1Iter<>(seed, fun);
+    static <U> Iter<U> from(final U seed, final Function<U, U> generator) {
+        Objects.requireNonNull(generator, "Generator function passed to Iter.from cannot be null!");
+        return new Seed1Iter<>(seed, generator);
+    }
+
+    static <U> Iter<U> empty() {
+        return new EmptyIter<>();
     }
 }
