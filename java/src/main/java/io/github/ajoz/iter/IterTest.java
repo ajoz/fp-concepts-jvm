@@ -36,8 +36,13 @@ public class IterTest {
                         .take(10);
 
         // although Iter<T> extends Iterable<T> .for live template does not work :(
-        for (final Integer integer : iterator) {
-            System.out.println("item: " + integer);
-        }
+        // for (final Integer integer : iterator) {
+        //    System.out.println("item: " + integer);
+        // }
+
+        // Iter is very simple and it's not possible to traverse it multiple times
+        // calling iterator.toList().size() will have different results
+        System.out.println("#1 Elements in the iter: " + iterator.toList().size());
+        System.out.println("#2 Elements in the iter: " + iterator.toList().size());
     }
 }

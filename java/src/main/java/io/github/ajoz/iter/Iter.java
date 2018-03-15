@@ -3,6 +3,7 @@ package io.github.ajoz.iter;
 import io.github.ajoz.util.Try;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -60,6 +61,11 @@ public interface Iter<T> extends Iterable<T> {
     // without zero :> like natural numbers
     default Iter<T> take(final int amount) {
         return new TakeIter<>(this, amount);
+    }
+
+    // this is a terminal operation
+    default List<T> toList() {
+        return Iters.toList(this);
     }
 
     default Iterator<T> iterator() {
