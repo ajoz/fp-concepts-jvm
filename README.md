@@ -13,6 +13,7 @@ This repository is a playground for different functional programming concepts on
   8. penultimate - returns the element next to the last element of the list. Hint: use Tuple
   9. unique - returns a list with unique elements from the given list
 * Java - a series of examples how to change a method with several boolean arguments into composition of functions
+* Java - an example how to implement a lazy "stream-like" data structure
 * Java - a Scala [Try](http://www.scala-lang.org/api/2.9.3/scala/util/Try.html) implementation
 * Java - a Haskell [Validation](https://github.com/tonymorris/validation) implementation
 * Kotlin - the same Validation applicative functor implementation (code shorter and much readable then in Java)
