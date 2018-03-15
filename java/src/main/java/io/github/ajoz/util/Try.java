@@ -3,6 +3,7 @@ package io.github.ajoz.util;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public abstract class Try<T> {
     private Try() {
@@ -22,6 +23,8 @@ public abstract class Try<T> {
 
     public abstract T getOrElse(T defaultValue);
 
+    public abstract T get();
+
     public abstract boolean isSuccess();
 
     public Try<T> ifSuccess(final Consumer<T> action) {
@@ -34,6 +37,16 @@ public abstract class Try<T> {
 
     public boolean isFailure() {
         return !isSuccess();
+    }
+
+    public static <U> Try<U> ofSupplier(final CheckedSupplier<U> supplier) {
+        try {
+            // a checked supplier is better as we can wrap API that throws an
+            // exception explicitely
+            return Try.success(supplier.get());
+        } catch (final Exception exc) {
+            return Try.failure(exc);
+        }
     }
 
     public static <U> Try<U> ofNullable(final U value) {
@@ -111,6 +124,11 @@ public abstract class Try<T> {
         }
 
         @Override
+        public T get() {
+            return value;
+        }
+
+        @Override
         public boolean isSuccess() {
             return true;
         }
@@ -162,6 +180,11 @@ public abstract class Try<T> {
         @Override
         public T getOrElse(final T defaultValue) {
             return defaultValue;
+        }
+
+        @Override
+        public T get() {
+            throw new RuntimeException("No such element!");
         }
 
         @Override

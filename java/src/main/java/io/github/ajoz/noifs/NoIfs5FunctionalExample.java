@@ -1,6 +1,6 @@
 package io.github.ajoz.noifs;
 
-import io.github.ajoz.util.function.TriFunction;
+import io.github.ajoz.util.TriFunction;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;

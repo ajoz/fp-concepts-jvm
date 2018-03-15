@@ -2,6 +2,7 @@ package io.github.ajoz.iter;
 
 import io.github.ajoz.util.Try;
 
+import java.util.Iterator;
 import java.util.function.Consumer;
 
 public class Iters {
@@ -13,5 +14,9 @@ public class Iters {
             if (next.isFailure())
                 break;
         } while (true);
+    }
+
+    public static <T> Iterable<T> toIterable(final Iter<T> iter) {
+        return () -> new IterIterator<>(iter);
     }
 }

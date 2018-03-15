@@ -34,5 +34,11 @@ public class IterTest {
                 .map(x -> x * 2)
                 .take(10)
                 .forEach(System.out::println);
+
+        final Iter<Integer> integerIter = Iter.from(1, 2, 3, 4, 5, 6, 7);
+        final Iterable<Integer> integers = Iters.toIterable(integerIter);
+        for (final Integer integer : integers) {
+            System.out.println("item: " + integer);
+        }
     }
 }

@@ -1,4 +1,4 @@
-package io.github.ajoz.util.function;
+package io.github.ajoz.util;
 
 /**
  * Represents a function that accepts three arguments and produces a result.
