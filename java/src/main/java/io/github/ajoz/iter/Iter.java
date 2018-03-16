@@ -35,6 +35,7 @@ import java.util.function.Predicate;
  Also didn't choose Seq, Sequence or Stream for similar reason.
 */
 public interface Iter<T> extends Iterable<T> {
+
     Try<T> next();
 
     default <R> Iter<R> map(final Function<? super T, ? extends R> mapper) {
