@@ -85,10 +85,70 @@ public abstract class Validation<E extends Semigroup<E>, A> implements Functor<A
     @Override
     public abstract <B> Validation<E, B> map(Function<A, B> function);
 
+    /*
+     I call this apLeft, in Haskell it is defined as:
+     (<*) :: Validation err a -> Validation err b -> Validation err a
+
+     This seems strange at first but it's supposed to run both Validations and
+     return a Validation that contains type `a`.
+
+     The implementation looks complicated all because of how Java is processing
+     "generics" and that it's not possible to have real standalone generic functions
+     unless we do an "object-like" implementation. Here we have a constant() method
+     that returns a function of the form:
+
+     constant :: a -> b -> a
+
+     In case of Java currying is a bit cumbersome so constant() returns
+
+     Function<A, Function<B, A>> constant() { //...
+
+     We will go through the operations, one by one:
+
+     1. map(constant())
+     We have a Validation<Err, A> and we map over it with a Function<A, Function<B, A>>
+     So as a result we get a Validation<Err, Function<B, A>>
+
+     2. ap(map(constant(), other)
+     We are calling ap function with Validation<Err, Function<B, A>> and Validation<Err, B>
+     as the arguments. As we know the stored Function<B, A> will always return the value of
+     type `A` thus we will get a result of type Validation<Err, A>
+     */
     public <B> Validation<E, A> apLeft(final Validation<E, B> other) {
         return ap(map(constant()), other);
     }
 
+    /*
+     I call this apRight, in Haskell it is defined as:
+     (*>) :: Validation err a -> Validation err b -> Validation err b
+
+     Such function is generalized in Control.Applicative package
+     (*>) :: f a -> f b -> f b
+     a1 *> a2 = (id <$ a1) <*> a2
+
+     Java implementation won't be as concise. As we already know the <*> is the "angry mom" operator
+     in our Validation implementation called ap. We used it already for apLeft. This
+     <$ function is doing a map . const over the given value.
+
+     (<$) :: a -> f b -> f a
+     (<$) =  fmap . const
+
+     Angry mom operator needs a function wrapped in an Applicative Functor, in this
+     case we need a Validation<Err, Function<A, B>>
+
+     fmap takes function as first arguments and a functor as a second
+     const takes a value `a` as a first argument and returns a function b -> a
+
+     fmap . const is a simple composition
+
+     The beauty haskell syntax starts to shine here as
+
+     (id <$ Validation<Err, A>) will get us Validation<Err, Function<T, T>> I deliberately
+     used T for the type to indicate its the identity function and it can take any type.
+
+     So Validation<Err, Function<T, T>> <*> Validation<Err, B> will give us Validation<Err, B>
+     as identity for value of type B will return this value of type B
+     */
     public <B> Validation<E, B> apRight(final Validation<E, B> other) {
         final Function<Validation<E, A>, Validation<E, Function<B, B>>> vid = mapConst(identity());
         final Validation<E, Function<B, B>> fmapped = vid.apply(this);
