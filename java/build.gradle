@@ -2,13 +2,14 @@ apply plugin: 'java-library'
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
 
-    // Use JUnitParams library
+    // Use JUnitParams library (for parametric tests)
     testImplementation 'pl.pragmatists:JUnitParams:1.1.1'
 }
 
