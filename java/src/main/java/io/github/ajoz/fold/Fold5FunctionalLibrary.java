@@ -33,7 +33,7 @@ import static java.util.Collections.emptyList;
  */
 public class Fold5FunctionalLibrary {
     /**
-     * Calculates the sumBad of int's stored on a list.
+     * Calculates the sum of int's stored on a list.
      *
      * @param list Contains the list of ints, might be empty
      * @return result of the sumBad of integers on the passed list.
