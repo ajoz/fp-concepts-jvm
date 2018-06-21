@@ -7,7 +7,8 @@ import static java.util.function.Function.identity;
 
 import java.util.function.Function;
 
-public abstract class Validation<E extends Semigroup<E>, A> implements Functor<A> {
+public abstract class Validation<E extends Semigroup<E>, A>
+        implements Functor<A> {
 
     private static final class Success<E extends Semigroup<E>, A> extends Validation<E, A> {
         final A value;
