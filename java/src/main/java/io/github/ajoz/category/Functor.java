@@ -1,5 +1,6 @@
 package io.github.ajoz.category;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 /*
@@ -37,8 +38,6 @@ public interface Functor<A> {
 }
 
 /*
-
-
   If we would like to define a Functor in Java we have some options:
 
   First one is a s simple generic type Functor<A> like above. This is probably
@@ -109,4 +108,101 @@ class FooFunctor<A> implements Functor<A> {
       Functor instead itself. With such Functor definition there is no
       way to guarantee the correct return type.
      */
+}
+
+/*
+  We can find another way of defining a functor if we look at how Haskell
+  defines it:
+
+  class Functor f where
+      fmap :: (a -> b) -> f a -> f b
+
+
+  Let's focus on the `f a` part. In the previous attempts we created something
+  (using Java-ish notation) that looks like:
+
+  fmap :: (a -> b) -> Functor<A> -> Functor<B>
+
+  This is not exactly correct as the Haskell version distinguishes between
+  some type `f` (a shape) that can contain a type `a` or `b` and by the
+  Functor class defines how this shape `f` should behave to "be a functor".
+  
+  In Java this would mean we would need something like:
+
+  interface Functor<F<A>> {
+      <B> F<B> fmap(Function<A, B> mapper);
+  }
+
+  The problem is that both `F` and `A` or `B` are generic. This means that we
+  need a "type" that would allow us to specify that there is some specific type
+  and it has a certain shape, this shape should be able to hold a type be
+  "container-like".
+
+  interface Shape<T, A> {
+
+  }
+
+
+
+ */
+@SuppressWarnings("unused")
+interface Kind<F, A> {
+    F fix();
+}
+
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+class OptionalKind<A> implements Kind<Optional, A> {
+    Optional<A> wrapped;
+
+    private OptionalKind(final Optional<A> wrapped) {
+        this.wrapped = wrapped;
+    }
+
+    public static <A> Kind<Optional, A> wrap(final Optional<A> optional) {
+        return new OptionalKind<>(optional);
+    }
+
+    public static <A> Optional<A> unwrap(final Kind<Optional, A> optionalKind) {
+        //noinspection unchecked
+        return (Optional<A>) optionalKind.fix();
+    }
+
+    @Override
+    public Optional fix() {
+        return wrapped;
+    }
+}
+
+interface FunctorTypeClass<F> {
+    <A, B> Kind<F, B> fmap(Function<A, B> function, Kind<F, A> f);
+}
+
+@SuppressWarnings("unchecked")
+class OptionalFunctorInstance implements FunctorTypeClass<Optional> {
+    @Override
+    public <A, B> Kind<Optional, B> fmap(Function<A, B> function, Kind<Optional, A> f) {
+        return OptionalKind.wrap(((Optional<A>) f.fix()).map(function));
+    }
+}
+
+class Test {
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        // some type that has a "shape" and contains a another type * -> *
+        Optional<String> os = Optional.of("Test");
+        // we want to model Higher Kinds
+        Kind<Optional, String> osk = OptionalKind.wrap(os);
+
+        // we would like to get instance of the type class automatically :-(
+        // but we cannot
+        FunctorTypeClass<Optional> ofi = new OptionalFunctorInstance();
+
+        // we can now perform the fmap
+        Kind<Optional, Integer> oik = ofi.fmap(String::length, osk);
+
+        // we want to get the type back
+        Optional<Integer> oi = OptionalKind.unwrap(oik);
+
+        System.out.println("value in the optional = " + oi.get());
+    }
 }
