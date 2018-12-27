@@ -117,7 +117,6 @@ class FooFunctor<A> implements Functor<A> {
   class Functor f where
       fmap :: (a -> b) -> f a -> f b
 
-
   Let's focus on the `f a` part. In the previous attempts we created something
   (using Java-ish notation) that looks like:
 
@@ -126,7 +125,7 @@ class FooFunctor<A> implements Functor<A> {
   This is not exactly correct as the Haskell version distinguishes between
   some type `f` (a shape) that can contain a type `a` or `b` and by the
   Functor class defines how this shape `f` should behave to "be a functor".
-  
+
   In Java this would mean we would need something like:
 
   interface Functor<F<A>> {
@@ -138,11 +137,41 @@ class FooFunctor<A> implements Functor<A> {
   and it has a certain shape, this shape should be able to hold a type be
   "container-like".
 
-  interface Shape<T, A> {
+  interface Shape1<T, A> {
 
   }
 
+  Let's get back to the Functor definition:
 
+  class Functor f where
+      fmap :: (a -> b) -> f a -> f b
+
+
+  Using our Java "shape" type it could look like:
+
+  interface Functor<F> {
+      <A, B> Shape1<F, B> fmap(Function<A, B> fun, Shape1<F, A> f)
+  }
+
+  This looks more like the Haskell version, let's remove the noise and leave
+  the necessary thins:
+
+  Functor<F> {
+     <F, B> fmap(Function<A, B>, <F, A>)
+  }
+
+  Ok this is nice and all but how to use it? It seems super detached from the
+  class hierarchy comparing to the first definition. This is correct! it is
+  super detached because it is detached. Having the Functor defined as
+
+  interface Functor<F> {
+      <A, B> Shape1<F, B> fmap(Function<A, B> fun, Shape1<F, A> f)
+  }
+
+  Allows us to create "functors" for types that already are defined in different
+  libraries and we cannot modify their sources.
+
+  Let's get back to the topic of the "shape" a bit 
 
  */
 @SuppressWarnings("unused")
