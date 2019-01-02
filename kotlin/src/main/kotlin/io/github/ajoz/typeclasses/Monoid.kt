@@ -3,19 +3,21 @@ package io.github.ajoz.typeclasses
 interface Monoid<A> {
     infix fun A.mappend(other: A): A
     fun mempty(): A
+    fun mconcat(items: List<A>): A =
+            foldl({ a: A, b: A -> a mappend b }, mempty(), items)
 }
 
-object IntAddMonoid : Monoid<Int> {
+object IntAddMonoidInstance : Monoid<Int> {
     override fun Int.mappend(other: Int) = this + other
     override fun mempty() = 0
 }
 
-object IntMultiplicationMonoid : Monoid<Int> {
+object IntMultiplicationMonoidInstance : Monoid<Int> {
     override fun Int.mappend(other: Int) = this * other
     override fun mempty() = 1
 }
 
-object ListMonoid : Monoid<List<*>> {
+object ListMonoidInstance : Monoid<List<*>> {
     override fun List<*>.mappend(other: List<*>) = this + other
     override fun mempty() = emptyList<Any>()
 }
@@ -32,3 +34,27 @@ val <A> List<A>.head
 val <A> List<A>.tail
     get() = this.subList(1, this.size)
 
+val List<Int>.sum
+    get() = IntAddMonoidInstance.mconcat(this)
+
+val List<Int>.product
+    get() = IntMultiplicationMonoidInstance.mconcat(this)
+
+@Suppress("UNCHECKED_CAST")
+fun <A> List<List<A>>.flatten(): List<A> =
+        ListMonoidInstance.mconcat(this) as List<A>
+
+fun main(args: Array<String>) {
+    val ints = listOf(1, 2, 3, 4, 5, 6)
+
+    println("Sum of $ints = ${ints.sum}")
+    println("Product of $ints = ${ints.product}")
+
+    val complex = listOf(
+            listOf(1, 2),
+            listOf(3, 4),
+            listOf(5, 6)
+    )
+
+    println("Flatten of $complex = ${complex.flatten()}")
+}
