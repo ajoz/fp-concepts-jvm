@@ -25,9 +25,6 @@ object ListFunctorInstance : Functor<ForList> {
             f.fromKind().map(func).toKind()
 }
 
-fun <A> List<A>.functor(): Functor<ForList> =
-        ListFunctorInstance
-
 sealed class Maybe<out A> {
     data class Some<A>(val value: A) : Maybe<A>()
     object None : Maybe<Nothing>()
@@ -55,9 +52,6 @@ object MaybeFunctorInstance : Functor<ForMaybe> {
         }
     }
 }
-
-fun <A> Maybe<A>.functor(): Functor<ForMaybe> =
-        MaybeFunctorInstance
 
 data class User(val name: String, val surname: String)
 

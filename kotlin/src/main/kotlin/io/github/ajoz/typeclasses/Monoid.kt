@@ -1,5 +1,9 @@
 package io.github.ajoz.typeclasses
 
+/*
+  Let's define a
+
+ */
 interface Monoid<A> {
     infix fun A.mappend(other: A): A
     fun mempty(): A
