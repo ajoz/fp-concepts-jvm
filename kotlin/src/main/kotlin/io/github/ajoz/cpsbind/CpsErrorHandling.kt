@@ -69,20 +69,32 @@ val divThenSquareCurried = composeRCCurried(div42ByCurried, squareCurried)
 data class Result1<A, E>(val onSuccess: (Continuation<A>) -> Unit,
                          val onError: (Continuation<E>) -> Unit)
 
+fun <A, E> returnSuccessResult1(value: A): Result1<A, E> =
+        Result1(
+                onSuccess = { it(value) },
+                onError = {}
+        )
+
+fun <A, E> returnErrorResult1(error: E): Result1<A, E> =
+        Result1(
+                onSuccess = {},
+                onError = { it(error) }
+        )
+
 val div42ByRes1: (Int) -> Result1<Double, String> =
         { value: Int ->
-            Result1(
-                    onSuccess = { ca -> ca(42.toDouble() / value) },
-                    onError = { ce -> ce("Division by zero!") }
-            )
+            when (value) {
+                0 -> returnErrorResult1("Division by zero!")
+                else -> returnSuccessResult1(42.toDouble() / value)
+            }
         }
 
 val squareRes1: (Double) -> Result1<Double, String> =
         { value: Double ->
-            Result1(
-                    onSuccess = { ca -> ca(Math.sqrt(value)) },
-                    onError = { ce -> ce("Square root of a negative number!") }
-            )
+            if (value < 0) {
+                returnErrorResult1("Square root of a negative number!")
+            } else
+                returnSuccessResult1(Math.sqrt(value))
         }
 
 typealias Result1Function<A, B, E> = (A) -> Result1<B, E>
@@ -140,9 +152,17 @@ fun main(args: Array<String>) {
 //        println("divThenSquareCurried error: $it")
 //    }
 
-    val res1 = divThenSquareRes1(42)
+    val res1 = divThenSquareRes1(0)
     res1.onSuccess { println("divThenSquareRes1 success: $it") }
     res1.onError { println("divThenSquareRes1 error: $it") }
+
+    val res2 = divThenSquareRes1(-1)
+    res2.onSuccess { println("divThenSquareRes1 success: $it") }
+    res2.onError { println("divThenSquareRes1 error: $it") }
+
+    val res3 = divThenSquareRes1(42)
+    res3.onSuccess { println("divThenSquareRes1 success: $it") }
+    res3.onError { println("divThenSquareRes1 error: $it") }
 
 }
 
