@@ -66,104 +66,176 @@ fun <A, B, C, E> composeRCCurried(f: ResultCurried<A, B, E>,
 
 val divThenSquareCurried = composeRCCurried(div42ByCurried, squareCurried)
 
-data class Result1<A, E>(val onSuccess: (Continuation<A>) -> Unit,
-                         val onError: (Continuation<E>) -> Unit)
+//data class Result<A, E>(val onSuccess: (Continuation<A>) -> Unit,
+//                        val onError: (Continuation<E>) -> Unit) {
+//    companion object
+//}
 
-fun <A, E> returnSuccessResult1(value: A): Result1<A, E> =
-        Result1(
-                onSuccess = { it(value) },
-                onError = {}
-        )
+typealias OnSuccess<A> = Continuation<A>
+typealias OnError<E> = Continuation<E>
 
-fun <A, E> returnErrorResult1(error: E): Result1<A, E> =
-        Result1(
-                onSuccess = {},
-                onError = { it(error) }
-        )
+data class Result<A, E>(val subscribe: (OnSuccess<A>) -> (OnError<E>) -> Unit) {
+    companion object
+}
 
-val div42ByRes1: (Int) -> Result1<Double, String> =
-        { value: Int ->
-            when (value) {
-                0 -> returnErrorResult1("Division by zero!")
-                else -> returnSuccessResult1(42.toDouble() / value)
+typealias ResultFunction<A, B, E> = (A) -> Result<B, E>
+
+fun <A, B, C, E> composeResult(f: ResultFunction<A, B, E>,
+                               g: ResultFunction<B, C, E>): ResultFunction<A, C, E> =
+        { a ->
+            Result { onSuccess ->
+                { onError ->
+                    f(a).subscribe { b ->
+                        g(b).subscribe { c ->
+                            onSuccess(c)
+                        }(onError)
+                    }(onError)
+                }
             }
         }
 
-val squareRes1: (Double) -> Result1<Double, String> =
-        { value: Double ->
-            if (value < 0) {
-                returnErrorResult1("Square root of a negative number!")
-            } else
-                returnSuccessResult1(Math.sqrt(value))
+fun <A, B, E> bindResult(ra: Result<A, E>,
+                         f: ResultFunction<A, B, E>): Result<B, E> =
+        Result { onSuccess ->
+            { onError ->
+                ra.subscribe { a ->
+                    f(a).subscribe(onSuccess)(onError)
+                }(onError)
+            }
         }
 
-typealias Result1Function<A, B, E> = (A) -> Result1<B, E>
+fun <A, B, E> Result<A, E>.bind(f: (A) -> Result<B, E>): Result<B, E> =
+        bindResult(this, f)
 
-fun <A, B, C, E> composeResult1(f: Result1Function<A, B, E>,
-                                g: Result1Function<B, C, E>): Result1Function<A, C, E> =
+fun <A, E> Result.Companion.Success(value: A): Result<A, E> =
+        Result { onSuccess -> { onSuccess(value) } }
+
+fun <A, E> Result.Companion.Error(error: E): Result<A, E> =
+        Result { { it(error) } }
+
+val div42ByResult: (Int) -> Result<Double, String> = { value ->
+    when (value) {
+        0 -> Result.Error("Division by zero!")
+        else -> Result.Success(42.toDouble() / value)
+    }
+}
+
+val squareResult: (Double) -> Result<Double, String> = { value ->
+    if (value < 0)
+        Result.Error("Square root of a negative number!")
+    else
+        Result.Success(Math.sqrt(value))
+}
+
+val divThenSquareResult = composeResult(div42ByResult, squareResult)
+
+data class Result2<A, E>(val subscribe: (error: OnError<E>, success: OnSuccess<A>) -> Unit) {
+    companion object
+}
+
+typealias Result2Function<A, B, E> = (A) -> Result2<B, E>
+
+fun <A, B, C, E> composeResult2(f: Result2Function<A, B, E>,
+                                g: Result2Function<B, C, E>): Result2Function<A, C, E> =
         { a ->
-            Result1(
-                    onSuccess = { cc ->
-                        val rb = f(a)
-                        rb.onSuccess { b ->
-                            val rc = g(b)
-                            rc.onSuccess(cc)
-                        }
-                    },
-                    onError = { ce ->
-                        val rb = f(a)
-                        rb.onError(ce)
-                        rb.onSuccess { b ->
-                            val rc = g(b)
-                            rc.onError(ce)
-                        }
-                    }
-            )
+            //            Result2 { onError, onSuccess ->
+//                f(a).subscribe(onError) { b ->
+//                    g(b).subscribe(onError, onSuccess)
+//                }
+//            }
+            bindResult2(f(a), g)
         }
 
-val divThenSquareRes1 = composeResult1(div42ByRes1, squareRes1)
+fun <A, B, E> bindResult2(ra: Result2<A, E>,
+                          f: (A) -> Result2<B, E>): Result2<B, E> =
+        Result2 { onError, onSuccess ->
+            ra.subscribe(onError) { a ->
+                f(a).subscribe(onError, onSuccess)
+            }
+        }
+
+fun <A, B, E> Result2<A, E>.bind(f: (A) -> Result2<B, E>): Result2<B, E> =
+        bindResult2(this, f)
+
+fun <A, E> Result2.Companion.Success(value: A): Result2<A, E> =
+        Result2 { _, onSuccess -> onSuccess(value) }
+
+fun <A, E> Result2.Companion.Error(error: E): Result2<A, E> =
+        Result2 { onError, _ -> onError(error) }
+
+val div42ByResult2: (Int) -> Result2<Double, String> =
+        {
+            when (it) {
+                0 -> Result2.Error("Division by zero!")
+                else -> Result2.Success(42.toDouble() / it)
+            }
+        }
+
+val squareResult2: (Double) -> Result2<Double, String> =
+        {
+            if (it < 0)
+                Result2.Error("Square root of a negative number!")
+            else
+                Result2.Success(Math.sqrt(it))
+        }
+
+val divThenSquareResult2 = composeResult2(div42ByResult2, squareResult2)
 
 fun main(args: Array<String>) {
-//    divThenSquare(0, { println("divThenSquare success: $it") }, { println("divThenSquare error: $it") })
-//    divThenSquare(-1, { println("divThenSquare success: $it") }, { println("divThenSquare error: $it") })
-//    divThenSquare(42, { println("divThenSquare success: $it") }, { println("divThenSquare error: $it") })
-//
-//    val a = divThenSquareCurried(0)
-//    val b = a {
-//    }
-//    b {
-//    }
-//
-//    divThenSquareCurried(0)() {
-//        println("divThenSquareCurried success: $it")
-//    }() {
-//        println("divThenSquareCurried error: $it")
-//    }
-//
-//    divThenSquareCurried(-1)() {
-//        println("divThenSquareCurried success: $it")
-//    }() {
-//        println("divThenSquareCurried error: $it")
-//    }
-//
-//    divThenSquareCurried(42)() {
-//        println("divThenSquareCurried success: $it")
-//    }() {
-//        println("divThenSquareCurried error: $it")
-//    }
+/*
+    divThenSquare(0, { println("divThenSquare success: $it") }, { println("divThenSquare error: $it") })
+    divThenSquare(-1, { println("divThenSquare success: $it") }, { println("divThenSquare error: $it") })
+    divThenSquare(42, { println("divThenSquare success: $it") }, { println("divThenSquare error: $it") })
 
-    val res1 = divThenSquareRes1(0)
-    res1.onSuccess { println("divThenSquareRes1 success: $it") }
-    res1.onError { println("divThenSquareRes1 error: $it") }
+    val a = divThenSquareCurried(0)
+    val b = a {
+    }
+    b {
+    }
 
-    val res2 = divThenSquareRes1(-1)
-    res2.onSuccess { println("divThenSquareRes1 success: $it") }
-    res2.onError { println("divThenSquareRes1 error: $it") }
+    divThenSquareCurried(0)() {
+        println("divThenSquareCurried success: $it")
+    }() {
+        println("divThenSquareCurried error: $it")
+    }
 
-    val res3 = divThenSquareRes1(42)
-    res3.onSuccess { println("divThenSquareRes1 success: $it") }
-    res3.onError { println("divThenSquareRes1 error: $it") }
+    divThenSquareCurried(-1)() {
+        println("divThenSquareCurried success: $it")
+    }() {
+        println("divThenSquareCurried error: $it")
+    }
 
+    divThenSquareCurried(42)() {
+        println("divThenSquareCurried success: $it")
+    }() {
+        println("divThenSquareCurried error: $it")
+    }
+    */
+
+/*
+    divThenSquareResult(42).subscribe {
+        println("Result success: $it")
+    }() {
+        println("Result error: $it")
+    }
+
+    Result.Success<Int, String>(0)
+            .bind(div42ByResult)
+            .bind(squareResult)
+            .subscribe {
+                println("Result success: $it")
+            }() {
+        println("Result error: $it")
+    }
+    */
+
+    Result2.Success<Int, String>(42)
+            .bind(div42ByResult2)
+            .bind(squareResult2)
+            .subscribe(
+                    { println("Result2 error: $it") },
+                    { println("Result2 success: $it") }
+            )
 }
 
 
