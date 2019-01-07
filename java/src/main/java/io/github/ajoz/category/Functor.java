@@ -171,17 +171,160 @@ class FooFunctor<A> implements Functor<A> {
   Allows us to create "functors" for types that already are defined in different
   libraries and we cannot modify their sources.
 
-  Let's get back to the topic of the "shape" a bit 
+  Let's get back to the topic of the "shape" a bit.
 
+  class Functor f where
+      fmap :: (a -> b) -> f a -> f b
+
+  The most peculiar thing in the code above is what we called "shape" part. We
+  need something that can hold a thing and we will return another something that
+  can hold a thing.
+
+  Shape? Let's start with asking what is a type of a type?
+
+  What does it even mean to have a type of a type? To answer this question we
+  need to think what is the type of the type constructor. So what is a type
+  constructor?
+
+  A type constructor is a special "construct" (pun intended) that creates a
+  type. I think about them as "functions" that return types.
+
+  data Bool = True | False
+
+  This Bool here is a type constructor, a very special one that does not take
+  an argument, it's called a "nullary" type constructor. This definition above
+  introduces two data constructors: True and False. They also do not take
+  arguments, meaning they are "nullary" data constructors.
+
+  Haskell is super nice here because it allows looking at the definition in terms
+  of sides:
+
+  - left side is type
+  - right side is value
+
+  What about Java?
+
+  enum Bool {
+      True,
+      False
+  }
+
+  We can create a similar thing although the syntax is not as clear as in the
+  Haskell example.
+
+  Let's define an Optional (Maybe, Option, etc):
+
+  data Optional a = Absent | Present a
+
+  Using the thing that we learned Optional is a type constructor that takes a
+  type (some type marked as `a`) and returns a type Optional a
+
+  Present :: a -> Optional a
+
+  Data constructor Present takes a >>value<< of type a and returns a >>value<< of
+  type Optional a
+
+  We have the right side covered but what about left side, the type side?
+
+  What is a type of Optional? In type theory it is called a Kind denoted by *.
+
+  - * is the kind of all nullary type constructors
+  - * -> * is the kind of unary type constructors
+  - * -> * -> * is the kind of binary type constructors
+
+  Our type Bool has the kind *, but our type Optional has the type * -> *
+
+  Why * -> *?
+
+  Let's say we have an Optional String
+
+  String has the kind *
+  Optional String has the kind *
+
+  So Optional takes something of kind * and returns something of kind * thus
+  Optional has kind * -> *
+
+  Similar thing is happening for a List
+
+  Int :: *
+  List Int :: *
+  List :: * -> *
+
+  You need concrete types to work with, its not possible to create a real
+  List<Optional>
+
+  You may say, but its possible in Java! That is not true because in Java it
+  would mean you have a List<Optional<Object>>. It's just a Java way of notation.
+
+  Ok we now know what is a type of type. Let's look at the original Haskell
+  definition of the Functor typeclass
+
+  class Functor f where
+    fmap :: (a -> b) -> f a -> f b
+
+  What is the type of the f here? It has kind * -> * because it is possible to
+  take a and pass to that type constructor f to get concrete type f a.
+
+  So with the Functor class we are saying that we are expecting a type f that
+  is a unary type constructor with kind * -> *
+
+  Completely impossible in Java :(
+
+  We can hack our way to get something that looks like this, but we will have to
+  squeeze our eyes a bit.
+
+  Let's define our "shape" our "kind" in Java. For this example we will focus on
+  unary type constructors.
+
+  Let's call it Kind:
  */
 @SuppressWarnings("unused")
 interface Kind<F, A> {
     F fix();
 }
 
+/*
+  It's a generic type that takes two generic arguments:
+  - F - that is supposed to be our type constructor
+  - A - that is supposed to be the type of the argument of the type constructor F
+
+  We do not have much options here, we will have to create instances of this
+  Kind<F, A> for any type we want to think as Higher Order Types.
+
+  We have the ability to express the higher kinded type so how would our Java
+  Functor look like:
+ */
+
+interface FunctorTypeClass<F> {
+    <A, B> Kind<F, B> fmap(Function<A, B> function, Kind<F, A> f);
+}
+
+/*
+  It takes a generic argument of type F, which is our "shape" the type we are
+  interested in. The newly created interface declares a single method called
+  fmap that returns a Kind<F, B> and takea a function from A to be and a
+  Kind<F, A>.
+
+  Cool. Let's use it.
+
+  Let's create an "instance" of this "type class" for a type Optional.
+
+  class OptionalFunctorInstance implements FunctorTypeClass<Optional> {
+    @Override
+    public <A, B> Kind<Optional, B> fmap(Function<A, B> function, Kind<Optional, A> f) {
+        ????????
+    }
+  }
+
+  But how to implement it? We need to create Kind<Optional, A> first. This is
+  tricky now as we need to create this kind and store the value of the Optional<A>
+  and then be able to retrieve it back.
+ */
+
+
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 class OptionalKind<A> implements Kind<Optional, A> {
-    Optional<A> wrapped;
+    private Optional<A> wrapped;
 
     private OptionalKind(final Optional<A> wrapped) {
         this.wrapped = wrapped;
@@ -197,13 +340,9 @@ class OptionalKind<A> implements Kind<Optional, A> {
     }
 
     @Override
-    public Optional fix() {
+    public Optional<A> fix() {
         return wrapped;
     }
-}
-
-interface FunctorTypeClass<F> {
-    <A, B> Kind<F, B> fmap(Function<A, B> function, Kind<F, A> f);
 }
 
 @SuppressWarnings("unchecked")
