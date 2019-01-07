@@ -280,7 +280,7 @@ class FooFunctor<A> implements Functor<A> {
  */
 @SuppressWarnings("unused")
 interface Kind<F, A> {
-    F fix();
+    F unwrap();
 }
 
 /*
@@ -319,47 +319,59 @@ interface FunctorTypeClass<F> {
   But how to implement it? We need to create Kind<Optional, A> first. This is
   tricky now as we need to create this kind and store the value of the Optional<A>
   and then be able to retrieve it back.
+
+  Our "Kind" will be more or less a wrapper to make things easy. We will wrap
+  the given type and then return it back. For returning it back we have this
+  handy fix() method. It will return us a bare type that would have to be cast
+  but this is the price we pay in Java.
+
+  Let's implement OptionalKind:
  */
-
-
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 class OptionalKind<A> implements Kind<Optional, A> {
     private Optional<A> wrapped;
 
-    private OptionalKind(final Optional<A> wrapped) {
+    // a way to wrap
+    public OptionalKind(final Optional<A> wrapped) {
         this.wrapped = wrapped;
     }
 
-    public static <A> Kind<Optional, A> wrap(final Optional<A> optional) {
-        return new OptionalKind<>(optional);
-    }
-
-    public static <A> Optional<A> unwrap(final Kind<Optional, A> optionalKind) {
-        //noinspection unchecked
-        return (Optional<A>) optionalKind.fix();
-    }
-
+    // a way to unwrap
     @Override
-    public Optional<A> fix() {
+    public Optional<A> unwrap() {
         return wrapped;
     }
 }
 
+/*
+  Let's implement the instance of our Optional Functor:
+ */
 @SuppressWarnings("unchecked")
 class OptionalFunctorInstance implements FunctorTypeClass<Optional> {
     @Override
     public <A, B> Kind<Optional, B> fmap(Function<A, B> function, Kind<Optional, A> f) {
-        return OptionalKind.wrap(((Optional<A>) f.fix()).map(function));
+        // the formatting although not super orthodox helps reading this:
+        return new OptionalKind<>(
+                // as f.unwrap() returns us just a bare Optional, we need to
+                // cast it to a Optional<A>, we can do it safely because we
+                // know its the only thing that Kind<Optional, A> can hold.
+                // Java will cry about the unchecked casts though.
+                ((Optional<A>) f.unwrap()).map(function)
+        );
     }
 }
 
+/*
+
+  Now the fun begins, how to use this monstrosity? It will get ugly!
+ */
 class Test {
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         // some type that has a "shape" and contains a another type * -> *
         Optional<String> os = Optional.of("Test");
         // we want to model Higher Kinds
-        Kind<Optional, String> osk = OptionalKind.wrap(os);
+        Kind<Optional, String> osk = new OptionalKind<>(os);
 
         // we would like to get instance of the type class automatically :-(
         // but we cannot
@@ -369,8 +381,34 @@ class Test {
         Kind<Optional, Integer> oik = ofi.fmap(String::length, osk);
 
         // we want to get the type back
-        Optional<Integer> oi = OptionalKind.unwrap(oik);
+        Optional<Integer> oi = oik.unwrap();
 
         System.out.println("value in the optional = " + oi.get());
+
+        /*
+
+        Why all the trouble?
+
+        In Java it's just an exercise but could be a really useful thing if
+        properly supported on the language level.
+
+        Would it be nice to add "behaviours" to type defined in some other
+        libraries that we do not have access to?
+
+        Let's say you are working with a library Foo. This library has a super
+        important type called Bar<A>. You noticed that it could be treated
+        as a Functor.
+
+        It would be super cool if you could do:
+
+        final Bar<String> bar = ...
+
+        final Bar<Integer> mappedBar = bar.map(String::length);
+
+        although Bar<A> does not have a map(Function<A, B> func) method defined.
+
+        This would be super useful.
+
+         */
     }
 }
