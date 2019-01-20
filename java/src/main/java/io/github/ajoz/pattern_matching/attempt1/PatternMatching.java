@@ -1,12 +1,12 @@
-package io.github.ajoz.pattern_matching;
+package io.github.ajoz.pattern_matching.attempt1;
 
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static io.github.ajoz.pattern_matching.ClassCase.inCaseOf;
-import static io.github.ajoz.pattern_matching.ElseCase.otherwise;
+import static io.github.ajoz.pattern_matching.attempt1.ClassCase.inCaseOf;
+import static io.github.ajoz.pattern_matching.attempt1.ElseCase.otherwise;
 
 abstract class Foo {
     public static class Bar extends Foo {
