@@ -14,7 +14,7 @@ public abstract class Seq<A> implements Iterable<A> {
         if (threshold == 0)
             return new Seq.Cons<>(getHead());
         else
-            return new Seq.Cons<>(getHead(), () -> take(threshold - 1));
+            return new Seq.Cons<>(getHead(), () -> getTail().take(threshold - 1));
     }
 
     public static final class Cons<A> extends Seq<A> {
@@ -62,7 +62,7 @@ public abstract class Seq<A> implements Iterable<A> {
 
         @Override
         public boolean isEmpty() {
-            return true;
+            return false;
         }
     }
 
@@ -95,7 +95,7 @@ public abstract class Seq<A> implements Iterable<A> {
 
         @Override
         public boolean isEmpty() {
-            return false;
+            return true;
         }
     }
 }
