@@ -5,6 +5,7 @@ import io.github.ajoz.lists.Lists;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -39,6 +40,22 @@ public abstract class Seq<A> implements Iterable<A> {
 //
 //        }
 //    }
+
+    public <B, C> Seq<C> zip(final Seq<B> other,
+                             final BiFunction<A, B, C> zipper) {
+        if (isEmpty()) {
+            return new Seq.Nil<>();
+        }
+
+        if (other.isEmpty()) {
+            return new Seq.Nil<>();
+        }
+
+        final A a = getHead();
+        final B b = other.getHead();
+
+        return new Seq.Cons<>(zipper.apply(a, b), () -> getTail().zip(other.getTail(), zipper));
+    }
 
     public static <A> Seq<A> continously(final A value) {
         return new Seq.Cons<>(value, () -> continously(value));
