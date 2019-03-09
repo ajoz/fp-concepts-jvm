@@ -20,10 +20,33 @@ public abstract class Seq<A> implements Iterable<A> {
     public abstract <B> Seq<B> flatMap(final Function<A, Seq<B>> func);
 
     public Seq<A> take(final int threshold) {
-        if (threshold == 0)
-            return new Seq.Cons<>(getHead(), Nil::new);
-        else
-            return new Seq.Cons<>(getHead(), () -> getTail().take(threshold - 1));
+        if (isEmpty()) {
+            return new Seq.Nil<>();
+        } else {
+            if (threshold == 0)
+                return new Seq.Cons<>(getHead(), Nil::new);
+            else
+                return new Seq.Cons<>(getHead(), () -> getTail().take(threshold - 1));
+        }
+    }
+
+//    public Seq<A> drop(final int amount) {
+//        if (isEmpty()) {
+//            return new Seq.Nil<>();
+//        } else if (amount < 0) {
+//            throw new IllegalArgumentException("Drop amount needs to be a positive integer!");
+//        } else {
+//
+//        }
+//    }
+
+    public static <A> Seq<A> continously(final A value) {
+        return new Seq.Cons<>(value, () -> continously(value));
+    }
+
+    public static <A> Seq<A> generate(final A seed,
+                                      final Function<A, A> generator) {
+        return new Seq.Cons<>(seed, () -> generate(generator.apply(seed), generator));
     }
 
     public static <A> Seq<A> of(final List<A> list) {
