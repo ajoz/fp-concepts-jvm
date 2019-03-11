@@ -15,10 +15,12 @@ public class SeqTest {
 ////        for (Integer integer : seq) {
 ////            System.out.println(integer);
 ////        }
-        Seq<String> seq =
-                Seq.of(Arrays.asList("This", "is", "a", "test"))
-                    .flatMap(str -> Seq.of(Arrays.asList(str, str)));
-        for (String s : seq) {
+        Seq<String> seq1 = Seq.of(Arrays.asList("This", "is", "a", "test"));
+        Seq<Integer> seq2 = Seq.of(Arrays.asList(1, 2, 3, 4, 5, 6));
+
+        Seq<String> seq3 = seq1.zip(seq2, (s, integer) -> s + ":" + integer);
+
+        for (String s : seq3) {
             System.out.println(s);
         }
     }
