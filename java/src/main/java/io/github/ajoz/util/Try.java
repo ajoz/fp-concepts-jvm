@@ -3,7 +3,6 @@ package io.github.ajoz.util;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public abstract class Try<T> {
     private Try() {
@@ -12,8 +11,6 @@ public abstract class Try<T> {
     public abstract Try<T> recover(final Function<Throwable, T> recovery);
 
     public abstract Try<T> recoverWith(final Function<Throwable, Try<T>> recoveryWith);
-
-    public abstract Try<T> filter(final Function<T, Boolean> predicate);
 
     public abstract Try<T> filter(final Predicate<? super T> predicate);
 
@@ -82,18 +79,18 @@ public abstract class Try<T> {
             return Try.success(value);
         }
 
-        @Override
-        public Try<T> filter(final Function<T, Boolean> predicate) {
-            if (predicate.apply(value)) {
-                return Try.success(value);
-            } else {
-                return Try.failure(
-                        new IllegalArgumentException(
-                                String.format("Value %s haven't satisfied the predicate", value, predicate)
-                        )
-                );
-            }
-        }
+//        @Override
+//        public Try<T> filter(final Function<T, Boolean> predicate) {
+//            if (predicate.apply(value)) {
+//                return Try.success(value);
+//            } else {
+//                return Try.failure(
+//                        new IllegalArgumentException(
+//                                String.format("Value %s haven't satisfied the predicate", value, predicate)
+//                        )
+//                );
+//            }
+//        }
 
         @Override
         public Try<T> filter(final Predicate<? super T> predicate) {
@@ -158,10 +155,10 @@ public abstract class Try<T> {
             return recoveryWith.apply(throwable);
         }
 
-        @Override
-        public Try<T> filter(final Function<T, Boolean> predicate) {
-            return Try.failure(throwable);
-        }
+//        @Override
+//        public Try<T> filter(final Function<T, Boolean> predicate) {
+//            return Try.failure(throwable);
+//        }
 
         @Override
         public Try<T> filter(final Predicate<? super T> predicate) {
