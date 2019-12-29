@@ -48,4 +48,13 @@ public class IllegalStatesUnrepresentable3 {
         private ConnectionState connectionState;
         // no constructor or methods to make it more readable
     }
+
+    /*
+      So why don't we use such solution? Maybe because we are taught
+      to fear the dreaded instanceof operator? <sound of thunder and
+      wolfs howling>
+      Is it really that bad? That is a thing for different topic. We
+      can use polymorphism if we do not want to check the type
+      explicitly.
+     */
 }
