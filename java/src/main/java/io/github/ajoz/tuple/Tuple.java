@@ -10,6 +10,6 @@ public class Tuple<A, B> {
     }
 
     public static <A, B> Tuple<A, B> of(final A arg1, final B arg2) {
-        return new Tuple<A, B>(arg1, arg2);
+        return new Tuple<>(arg1, arg2);
     }
 }
