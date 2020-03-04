@@ -1,4 +1,4 @@
-package io.github.ajoz.illegal;
+package io.github.ajoz.illegal.network;
 
 import java.net.InetAddress;
 import java.time.Duration;
