@@ -72,5 +72,43 @@ public abstract class CSSColor3 {
       It seems like a large amount of code for a thing that is fairly simple, this is
       due to the baroque's nature of Java as a language. In a language like Kotlin
       the code could be much much shorter and simpler.
+
+      Creating such objects seem complicated but allow us to relay completely on types.
+
+      We can just create function from the base types:
      */
+}
+
+class Example {
+    public static Try<CSSColor3> tryRGB(final int red,
+                                        final int green,
+                                        final int blue) {
+        final Try<RGBComponent> redComponent = RGBComponent.tryParse(red);
+        final Try<RGBComponent> greenComponent = RGBComponent.tryParse(green);
+        final Try<RGBComponent> blueComponent = RGBComponent.tryParse(blue);
+
+        // Java syntax does not allow for things like for-comprehension thus
+        // we need to manually flatMap/map the results:
+        return redComponent.flatMap(
+                redColor -> greenComponent.flatMap(
+                        greenColor -> blueComponent.flatMap(
+                                blueColor -> CSSColor3.tryRGB(redColor, greenColor, blueColor)
+                        )
+                )
+        );
+        /*
+          The above code would be much more readable with for-comprehension (Scala) or do notation (Haskell)
+          Kotlin's Arrow library introduces similar thing in the form of e.g. IO.fx
+
+          Something like:
+
+          for {
+             redColor <- tryParse(red);
+             greenColor <- tryParse(green);
+             blueColor <- tryParse(blue);
+          } yield RGB(redColor, greenColor, blueColor)
+
+          unfortunately we do not have such thing in Java 
+         */
+    }
 }
