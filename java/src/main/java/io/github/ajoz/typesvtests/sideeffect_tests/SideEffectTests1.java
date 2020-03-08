@@ -1,4 +1,4 @@
-package io.github.ajoz.sideeffect_tests;
+package io.github.ajoz.typesvtests.sideeffect_tests;
 
 /*
   Many times we test if the code we've written correctly performs some

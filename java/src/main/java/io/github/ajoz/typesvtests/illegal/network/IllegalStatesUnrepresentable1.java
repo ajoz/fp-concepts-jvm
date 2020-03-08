@@ -1,4 +1,4 @@
-package io.github.ajoz.illegal.network;
+package io.github.ajoz.typesvtests.illegal.network;
 
 import java.net.InetAddress;
 

@@ -1,4 +1,4 @@
-package io.github.ajoz.illegal.css;
+package io.github.ajoz.typesvtests.illegal.css;
 
 import io.github.ajoz.util.Try;
 
@@ -108,7 +108,7 @@ class Example {
              blueColor <- tryParse(blue);
           } yield RGB(redColor, greenColor, blueColor)
 
-          unfortunately we do not have such thing in Java 
+          unfortunately we do not have such thing in Java
          */
     }
 }

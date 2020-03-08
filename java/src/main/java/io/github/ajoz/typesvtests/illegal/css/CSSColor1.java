@@ -1,4 +1,4 @@
-package io.github.ajoz.illegal.css;
+package io.github.ajoz.typesvtests.illegal.css;
 
 /*
  Let's imagine we are developing some code that is related to

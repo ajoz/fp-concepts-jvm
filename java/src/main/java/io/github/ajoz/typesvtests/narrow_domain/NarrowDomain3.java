@@ -1,4 +1,4 @@
-package io.github.ajoz.narrow_domain;
+package io.github.ajoz.typesvtests.narrow_domain;
 
 import java.util.List;
 import java.util.Optional;

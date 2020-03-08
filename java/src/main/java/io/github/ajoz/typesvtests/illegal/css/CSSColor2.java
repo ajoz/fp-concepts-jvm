@@ -1,4 +1,4 @@
-package io.github.ajoz.illegal.css;
+package io.github.ajoz.typesvtests.illegal.css;
 
 import io.github.ajoz.util.Try;
 

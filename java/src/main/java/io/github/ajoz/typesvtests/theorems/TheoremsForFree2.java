@@ -1,4 +1,4 @@
-package io.github.ajoz.theorems;
+package io.github.ajoz.typesvtests.theorems;
 
 import java.util.List;
 

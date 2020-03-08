@@ -1,4 +1,4 @@
-package io.github.ajoz.extend_codomain;
+package io.github.ajoz.typesvtests.extend_codomain;
 
 import java.util.Optional;
 
