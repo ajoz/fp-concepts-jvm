@@ -12,7 +12,7 @@ package io.github.ajoz.capability.functional
  - we cannot now call different non query related methods on the database object
    and we are not tempted to do it.
  */
-class UserAcquisitionManager2
+class UserAcquisitionManager
 (
         private val query: (DbQuery) -> DbResult /*, here other fields of course */
 ) {
@@ -38,7 +38,7 @@ fun main() {
 
     // we could pass specialized versions of this function to our
     // acquisition manager now
-    val uam = UserAcquisitionManager2(simpleQueryFunction3)
+    val uam = UserAcquisitionManager(simpleQueryFunction3)
 }
 
 /*

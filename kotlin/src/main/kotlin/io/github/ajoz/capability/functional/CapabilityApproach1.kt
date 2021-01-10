@@ -22,7 +22,7 @@ package io.github.ajoz.capability.functional
  code etc. If too much capability is there already nothing is
  stopping us before we make a mistake :(
  */
-class UserAcquisitionManager1
+class UserAcquisitionManagerWrongApproach
 (
         private val db: Database /*, here other fields of course */
 ) {

@@ -22,15 +22,7 @@ fun generateTimestamp(): Long =
  We have the same implementation of the UserAcquisitionManager as previously.
  To add logging we just only need the best programming/design pattern which
  is composition.
- */
-class UserAcquisitionManager3
-(
-        private val query: (DbQuery) -> DbResult /*, here other fields of course */
-) {
-    // super important business logic that is using the database
-}
 
-/*
  Implementation is quite simple, we take a function, we wrap it up in another
  function and just log the input.
  */
@@ -47,5 +39,10 @@ fun main() {
     val queryWithLogging: (DbQuery) -> DbResult =
             addLogging("UserAcquisitionManager", db::run)
 
-    val uam = UserAcquisitionManager3(queryWithLogging)
+    val uam = UserAcquisitionManager(queryWithLogging)
 }
+
+/*
+ Logging is too easy, let's try something harder like revoking the rights on
+ demand?
+ */
