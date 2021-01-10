@@ -38,7 +38,14 @@ fun <A, B> addLogging(tag: String, f: (A) -> B): (A) -> B = {
     log(tag, "$it")
     f(it)
 }
-
+/*
+  Let's use it now:
+ */
 fun main() {
-    
+    val db = Database()
+
+    val queryWithLogging: (DbQuery) -> DbResult =
+            addLogging("UserAcquisitionManager", db::run)
+
+    val uam = UserAcquisitionManager3(queryWithLogging)
 }
